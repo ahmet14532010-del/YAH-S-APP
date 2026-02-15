@@ -1,0 +1,2994 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YAHİS">
+    <meta name="theme-color" content="#0891b2">
+    <title>YAHİS - Yatak Başı Akıllı Hasta İzlem Sistemi</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #e8eef3;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .log-entry { 
+            animation: slideIn 0.3s ease-out; 
+        }
+        
+        @keyframes slideIn { 
+            from { 
+                opacity: 0; 
+                transform: translateY(-10px); 
+            } 
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            } 
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="bg-gradient-to-r from-cyan-600 to-cyan-500 text-white px-6 py-4 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMenu()" class="hover:bg-white/20 p-2 rounded-lg transition-all">
+                    <i class="fa-solid fa-bars text-2xl"></i>
+                </button>
+                <h1 class="text-2xl font-bold">YAHİS</h1>
+            </div>
+            <div class="text-center flex-1">
+                <h2 class="text-lg font-semibold">Yatak Başı Akıllı Hasta İzlem Sistemi</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="openModal('alarmModal')" class="hover:bg-white/20 p-2 rounded-lg transition-all relative">
+                    <i class="fa-solid fa-bell text-xl"></i>
+                    <span id="alarmBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">0</span>
+                </button>
+                <button onclick="openModal('settingsModal')" class="hover:bg-white/20 p-2 rounded-lg transition-all">
+                    <i class="fa-solid fa-gear text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDE MENU -->
+    <div id="sideMenu" class="fixed inset-0 bg-black/50 hidden z-50" onclick="closeMenu()">
+        <div class="bg-white w-80 h-full shadow-2xl" onclick="event.stopPropagation()">
+            <div class="bg-gradient-to-r from-cyan-600 to-cyan-500 text-white p-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold">Menü</h3>
+                    <button onclick="closeMenu()" class="hover:bg-white/20 p-2 rounded-lg">
+                        <i class="fa-solid fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4 space-y-2">
+                <button onclick="openModal('cikisModal')" class="w-full text-left px-4 py-3 hover:bg-red-50 rounded-lg transition-all flex items-center gap-3 text-gray-700 font-semibold">
+                    <i class="fa-solid fa-right-from-bracket text-red-600 text-xl"></i>
+                    Hasta Çıkışı
+                </button>
+                <button onclick="openModal('yeniHastaModal')" class="w-full text-left px-4 py-3 hover:bg-green-50 rounded-lg transition-all flex items-center gap-3 text-gray-700 font-semibold">
+                    <i class="fa-solid fa-user-plus text-green-600 text-xl"></i>
+                    Yeni Hasta Kaydı
+                </button>
+                
+                <!-- Raporlar Menüsü -->
+                <div>
+                    <button onclick="toggleRaporlar()" class="w-full text-left px-4 py-3 hover:bg-gray-100 rounded-lg transition-all flex items-center justify-between text-gray-700 font-semibold">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-chart-line text-purple-600 text-xl"></i>
+                            Raporlar
+                        </div>
+                        <i id="raporlarChevron" class="fa-solid fa-chevron-down text-gray-400 transition-transform"></i>
+                    </button>
+                    
+                    <div id="raporlarMenu" class="hidden pl-8 pr-4 space-y-1 mt-1">
+                        <button onclick="openRapor('tahlil')" class="w-full text-left px-3 py-2 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-2 text-sm text-gray-600">
+                            <i class="fa-solid fa-flask text-blue-500"></i>
+                            Tahlil Sonuçları
+                        </button>
+                        <button onclick="openRapor('ekg')" class="w-full text-left px-3 py-2 hover:bg-red-50 rounded-lg transition-all flex items-center gap-2 text-sm text-gray-600">
+                            <i class="fa-solid fa-heart-pulse text-red-500"></i>
+                            EKG Sonuçları
+                        </button>
+                        <button onclick="openRapor('mri')" class="w-full text-left px-3 py-2 hover:bg-purple-50 rounded-lg transition-all flex items-center gap-2 text-sm text-gray-600">
+                            <i class="fa-solid fa-brain text-purple-500"></i>
+                            MR Sonuçları
+                        </button>
+                        <button onclick="openRapor('xray')" class="w-full text-left px-3 py-2 hover:bg-green-50 rounded-lg transition-all flex items-center gap-2 text-sm text-gray-600">
+                            <i class="fa-solid fa-x-ray text-green-500"></i>
+                            Röntgen Sonuçları
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PATIENT INFO BAR -->
+    <div class="bg-white px-6 py-3 shadow-sm border-b border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <span class="text-gray-600 text-sm">Hasta:</span>
+                <span class="font-bold text-gray-800 ml-2">Ahmet Nazlı (ID: 73892)</span>
+            </div>
+            <div class="flex gap-6">
+                <div>
+                    <span class="text-gray-600 text-sm">Oda/Yatak:</span>
+                    <span class="font-bold text-purple-600 ml-2">304-B</span>
+                </div>
+                <div>
+                    <span class="text-gray-600 text-sm">Alerji:</span>
+                    <span class="font-bold text-red-600 ml-2">PENİSİLİN</span>
+                </div>
+                <div>
+                    <span class="text-gray-600 text-sm">Kan Grubu:</span>
+                    <span class="font-bold text-blue-600 ml-2">A+</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="p-6">
+
+        <div class="grid grid-cols-3 gap-6 max-w-7xl mx-auto">
+            
+            <!-- SOL KOLON: SON İŞLEMLER -->
+            <div class="bg-white rounded-lg shadow-md p-5">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800">
+                        Son İşlemler
+                        <span class="text-sm font-normal text-cyan-600 ml-2">(Canlı Kayıt)</span>
+                    </h3>
+                    <button onclick="openModal('nfcModal')" class="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i>
+                        Personel İşlem
+                    </button>
+                </div>
+                
+                <div id="actionLog" class="space-y-3 overflow-y-auto" style="max-height: 500px;">
+                    <!-- Örnek kayıtlar -->
+                    <div class="log-entry text-sm border-l-4 border-cyan-500 pl-3 py-2">
+                        <div class="text-xs text-gray-500">14:20 — H. Ayşe Yılmaz</div>
+                        <div class="text-gray-700">Serum takıldı (IV Girişi Uygulandı)</div>
+                    </div>
+                    
+                    <div class="log-entry text-sm border-l-4 border-cyan-500 pl-3 py-2">
+                        <div class="text-xs text-gray-500">14:25 — Dr. Ağrı Kesici Uygulandı</div>
+                        <div class="text-gray-700">(IV Antibiyotik) Seftriakson, Doz:1000mg (1.000mg)</div>
+                    </div>
+                    
+                    <div class="log-entry text-sm border-l-4 border-cyan-500 pl-3 py-2">
+                        <div class="text-xs text-gray-500">15:10 — Eden Müdavisi (İğne: 1 Ton İam)</div>
+                        <div class="text-gray-700">Daç. 1200mg)</div>
+                    </div>
+                    
+                    <div class="log-entry text-sm border-l-4 border-cyan-500 pl-3 py-2">
+                        <div class="text-xs text-gray-500">16:00 — Dr. Mehmet Kaya:</div>
+                        <div class="text-gray-700">(IV Antibiyotik) Seftriakson, Doz:1000mg (1.000mg)</div>
+                    </div>
+                    
+                    <div class="log-entry text-sm border-l-4 border-cyan-500 pl-3 py-2">
+                        <div class="text-xs text-gray-500">16:20 — Dr. Mehmet Kaya:</div>
+                        <div class="text-gray-700">Dr. Tablili Gönderil (Lale Tom Kan)</div>
+                    </div>
+                    
+                    <div class="log-entry text-sm border-l-4 border-cyan-500 pl-3 py-2">
+                        <div class="text-xs text-gray-500">16:20 — S. Ayşak edi Yemek verildi</div>
+                        <div class="text-gray-700">Tavuk Suyul Çorba)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ORTA KOLON: REFAKATÇİ GİRİŞİ -->
+            <div class="bg-white rounded-lg shadow-md p-5">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800">Refakatçi Girişi</h3>
+                    <button onclick="openModal('aiAsistanModal')" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-3 py-1.5 rounded-lg font-semibold text-xs transition-all shadow-sm flex items-center gap-1.5">
+                        <i class="fa-solid fa-robot text-sm"></i>
+                        <span>AI Asistan</span>
+                    </button>
+                </div>
+                
+                <div class="space-y-3">
+                    <button onclick="openModal('suModal')" class="w-full bg-gradient-to-br from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg p-4 flex items-center gap-3 transition-all shadow-md">
+                        <div class="bg-white/20 rounded-lg p-3">
+                            <i class="fa-solid fa-glass-water text-2xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-lg">Su İçti</div>
+                            <div class="text-sm opacity-90">Miktar Gir (ml)</div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="openModal('yemekModal')" class="w-full bg-gradient-to-br from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white rounded-lg p-4 flex items-center gap-3 transition-all shadow-md">
+                        <div class="bg-white/20 rounded-lg p-3">
+                            <i class="fa-solid fa-utensils text-2xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-lg">Yemek Yedi</div>
+                            <div class="text-sm opacity-90">Detay Gir</div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="openModal('tuvaletModal')" class="w-full bg-gradient-to-br from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white rounded-lg p-4 flex items-center gap-3 transition-all shadow-md">
+                        <div class="bg-white/20 rounded-lg p-3">
+                            <i class="fa-solid fa-restroom text-2xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-lg">Tuvalet</div>
+                            <div class="text-sm opacity-90">Miktar Gir (ml)</div>
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="font-bold text-gray-700 mb-3">Refakatçi Kayıtları</h4>
+                    <div id="refakatciLog" class="space-y-2 overflow-y-auto" style="max-height: 300px;">
+                        <!-- Refakatçi kayıtları buraya eklenecek -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAĞ KOLON: GENEL DURUM -->
+            <div class="bg-white rounded-lg shadow-md p-5">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-3 border-b border-gray-200">Genel Durum</h3>
+                
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-sm text-gray-600 mb-2">Kronik Hastalıklar:</div>
+                        <div class="text-gray-800 font-medium">Hiçbirşey Kaydı Yok(mevcut)</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-orange-400 to-orange-500 rounded-lg p-4 shadow-md">
+                        <button onclick="openModal('sesliMesajModal')" class="w-full text-white">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-white/20 rounded-lg p-3">
+                                    <i class="fa-solid fa-microphone text-2xl"></i>
+                                </div>
+                                <div class="text-left">
+                                    <div class="font-bold text-lg">Hızlı İletişim</div>
+                                    <div class="text-sm opacity-90">Hemşireye Sesli Mesaj Gönder</div>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-sm text-gray-600 mb-2">Sıvıl Dengesi:</div>
+                        <div class="text-gray-800 font-medium text-2xl">+ 380ml</div>
+                    </div>
+                    
+                    <div class="space-y-3 pt-2">
+                        <h4 class="font-bold text-gray-700">Anlık Veriler</h4>
+                        
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span class="text-gray-600 text-sm">Ateş:</span>
+                            <span class="font-bold text-gray-800">36.8°C</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span class="text-gray-600 text-sm">Nabız:</span>
+                            <span class="font-bold text-gray-800">72 atım/dk</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span class="text-gray-600 text-sm">Tansiyon:</span>
+                            <span class="font-bold text-gray-800">120/80 mmHg</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span class="text-gray-600 text-sm">SpO2 (Satürasyon):</span>
+                            <span class="font-bold text-green-600">98%</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span class="text-gray-600 text-sm">Solunum:</span>
+                            <span class="font-bold text-gray-800">16 /dk</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RAPOR SAYFASI -->
+    <div id="raporSayfasi" class="hidden fixed inset-0 bg-white z-40 overflow-y-auto">
+        <div class="bg-gradient-to-r from-cyan-600 to-cyan-500 text-white px-6 py-4 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <button onclick="closeRapor()" class="hover:bg-white/20 p-2 rounded-lg transition-all">
+                        <i class="fa-solid fa-arrow-left text-2xl"></i>
+                    </button>
+                    <h1 id="raporBaslik" class="text-2xl font-bold">Rapor Detayları</h1>
+                </div>
+            </div>
+        </div>
+        
+        <div id="raporIcerik" class="p-6">
+            <!-- Rapor içeriği buraya gelecek -->
+        </div>
+    </div>
+
+    <!-- MODAL: SU İÇTİ -->
+    <div id="suModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Su İçti - Miktar Gir</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Miktar (ml)</label>
+                    <input type="number" id="suMiktar" placeholder="Örn: 200" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="document.getElementById('suMiktar').value = 100" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm font-semibold">100ml</button>
+                    <button onclick="document.getElementById('suMiktar').value = 200" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm font-semibold">200ml</button>
+                    <button onclick="document.getElementById('suMiktar').value = 250" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm font-semibold">250ml</button>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeModal('suModal')" class="flex-1 p-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">İptal</button>
+                    <button onclick="submitSu()" class="flex-1 p-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: YEMEK YEDİ -->
+    <div id="yemekModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Yemek Yedi - Detay Gir</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Yemek Türü</label>
+                    <input type="text" id="yemekTur" placeholder="Örn: Çorba, Pilav, Et" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+                
+                <div id="corbaDetayDiv" class="hidden">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Çorba Türü</label>
+                    <select id="corbaTuru" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option value="Taneli">Taneli Çorba</option>
+                        <option value="Tanesiniz">Tanesiniz Çorba</option>
+                        <option value="Full Sıvı">Full Sıvı Çorba</option>
+                        <option value="Kremalı">Kremalı Çorba</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Porsiyon Büyüklüğü</label>
+                    <select id="yemekPorsiyon" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option value="Çeyrek Porsiyon">Çeyrek Porsiyon (1/4)</option>
+                        <option value="Yarım Porsiyon">Yarım Porsiyon (1/2)</option>
+                        <option value="Tam Porsiyon" selected>Tam Porsiyon (1)</option>
+                        <option value="Büyük Porsiyon">Büyük Porsiyon (1.5)</option>
+                        <option value="2 Porsiyon">2 Porsiyon</option>
+                        <option value="3 Porsiyon">3 Porsiyon</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Ek Not (Opsiyonel)</label>
+                    <input type="text" id="yemekNot" placeholder="Örn: Sıcak, Soğuk, Az tuzlu" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeModal('yemekModal')" class="flex-1 p-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">İptal</button>
+                    <button onclick="submitYemek()" class="flex-1 p-3 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-700 transition-all">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TUVALET -->
+    <div id="tuvaletModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Tuvalet - Detay Gir</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Tür</label>
+                    <select id="tuvaletTur" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none">
+                        <option value="Küçük Abdest">Küçük Abdest (İdrar)</option>
+                        <option value="Büyük Abdest">Büyük Abdest</option>
+                    </select>
+                </div>
+                <div id="idrarMiktarDiv">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">İdrar Miktarı (ml)</label>
+                    <input type="number" id="idrarMiktar" placeholder="Örn: 300" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none">
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="document.getElementById('idrarMiktar').value = 200" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm font-semibold">200ml</button>
+                        <button onclick="document.getElementById('idrarMiktar').value = 300" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm font-semibold">300ml</button>
+                        <button onclick="document.getElementById('idrarMiktar').value = 500" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm font-semibold">500ml</button>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeModal('tuvaletModal')" class="flex-1 p-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">İptal</button>
+                    <button onclick="submitTuvalet()" class="flex-1 p-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SAĞLIK PERSONEL GİRİŞİ (NFC) -->
+    <div id="nfcModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-id-card text-cyan-600"></i>
+                Personel Girişi
+            </h3>
+            <div class="space-y-4">
+                <div class="bg-cyan-50 border-2 border-cyan-200 rounded-lg p-6 text-center">
+                    <i class="fa-solid fa-wifi text-4xl text-cyan-600 mb-3 animate-pulse"></i>
+                    <p class="text-gray-700 font-semibold">NFC Kartınızı Okutun</p>
+                    <p class="text-sm text-gray-500 mt-2">Veya manuel giriş yapın</p>
+                </div>
+                
+                <div class="border-t pt-4">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Ad Soyad</label>
+                    <input type="text" id="personelAd" placeholder="Örn: Ayşe Yılmaz" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Görev</label>
+                    <select id="personelGorev" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none">
+                        <option value="Doktor">Doktor</option>
+                        <option value="Hemşire">Hemşire</option>
+                        <option value="Sağlık Bakım Teknisyeni">Sağlık Bakım Teknisyeni</option>
+                        <option value="Ebe">Ebe</option>
+                        <option value="Anestezi Teknisyeni">Anestezi Teknisyeni</option>
+                        <option value="Laborant">Laborant</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Yapılan İşlem</label>
+                    <textarea id="personelIslem" rows="3" placeholder="Örn: Serum takıldı, IV girişi sağlandı" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none"></textarea>
+                </div>
+                
+                <!-- Vital Bulgular -->
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-heartbeat text-blue-600"></i>
+                        Vital Bulgular (Opsiyonel)
+                    </h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Ateş (°C)</label>
+                            <input type="number" id="vitalAtes" step="0.1" placeholder="36.5" class="w-full p-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Nabız (/dk)</label>
+                            <input type="number" id="vitalNabiz" placeholder="72" class="w-full p-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Tansiyon</label>
+                            <input type="text" id="vitalTansiyon" placeholder="120/80" class="w-full p-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">SpO2 (%)</label>
+                            <input type="number" id="vitalSpo2" placeholder="98" class="w-full p-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Solunum (/dk)</label>
+                            <input type="number" id="vitalSolunum" placeholder="16" class="w-full p-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- İlaç Hatırlatıcı Ekle -->
+                <div class="bg-purple-50 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-bell text-purple-600"></i>
+                        İlaç Hatırlatıcı Ekle (Opsiyonel)
+                    </h4>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">İlaç Adı</label>
+                            <input type="text" id="personelAlarmIlac" placeholder="Örn: Parol 500mg" class="w-full p-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Saat</label>
+                                <input type="time" id="personelAlarmSaat" class="w-full p-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Tekrar</label>
+                                <select id="personelAlarmTekrar" class="w-full p-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                                    <option value="once">Bir Kez</option>
+                                    <option value="daily">Her Gün</option>
+                                    <option value="4hours">4 Saatte Bir</option>
+                                    <option value="6hours">6 Saatte Bir</option>
+                                    <option value="8hours">8 Saatte Bir</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeModal('nfcModal')" class="flex-1 p-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">İptal</button>
+                    <button onclick="submitPersonelIslem()" class="flex-1 p-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700 transition-all">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HASTA ÇIKIŞI -->
+    <div id="cikisModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h3 class="text-xl font-bold text-red-600 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Hasta Çıkışı
+            </h3>
+            <div class="space-y-4">
+                <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+                    <p class="text-gray-700 font-semibold mb-2">Hasta Bilgileri:</p>
+                    <p class="text-gray-600">Ad Soyad: <span class="font-bold">Ahmet Nazlı</span></p>
+                    <p class="text-gray-600">TC No: <span class="font-bold">12345678901</span></p>
+                    <p class="text-gray-600">Hasta ID: <span class="font-bold">#73892</span></p>
+                </div>
+
+                <div class="bg-cyan-50 border-2 border-cyan-200 rounded-lg p-6 text-center">
+                    <i class="fa-solid fa-wifi text-4xl text-cyan-600 mb-3 animate-pulse"></i>
+                    <p class="text-gray-700 font-semibold">Çıkış İçin NFC Kartınızı Okutun</p>
+                    <p class="text-sm text-gray-500 mt-2">Yetkili personel onayı gereklidir</p>
+                </div>
+                
+                <div class="border-t pt-4">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Personel Ad Soyad</label>
+                    <input type="text" id="cikisPersonelAd" placeholder="Örn: Dr. Mehmet Kaya" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Çıkış Notu (Opsiyonel)</label>
+                    <textarea id="cikisNotu" rows="2" placeholder="Örn: Tedavi tamamlandı, genel durumu iyi" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none"></textarea>
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeModal('cikisModal')" class="flex-1 p-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">İptal</button>
+                    <button onclick="submitHastaCikis()" class="flex-1 p-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all">Çıkış Yap</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ALARM / İLAÇ HATIRLAT -->
+    <div id="alarmModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-cyan-600 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-bell"></i>
+                İlaç Hatırlatıcı / Alarm
+            </h3>
+            
+            <div class="space-y-4">
+                <!-- Alarm Türü Seçimi -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Alarm Türü</label>
+                    <select id="alarmTuru" onchange="changeAlarmType()" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none">
+                        <option value="saat">Belirli Saat</option>
+                        <option value="dakika">Dakika Sonra</option>
+                        <option value="kronometre">Kronometre</option>
+                    </select>
+                </div>
+                
+                <!-- Yeni Alarm Ekle -->
+                <div class="bg-cyan-50 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-3">Yeni Hatırlatıcı Ekle</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-600 mb-2">İlaç/İşlem Adı</label>
+                            <input type="text" id="alarmIlac" placeholder="Örn: Parol 500mg" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none">
+                        </div>
+                        
+                        <!-- Belirli Saat -->
+                        <div id="saatAlarmDiv">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Saat</label>
+                                    <input type="time" id="alarmSaat" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Tekrar</label>
+                                    <select id="alarmTekrar" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none">
+                                        <option value="once">Bir Kez</option>
+                                        <option value="daily">Her Gün</option>
+                                        <option value="4hours">4 Saatte Bir</option>
+                                        <option value="6hours">6 Saatte Bir</option>
+                                        <option value="8hours">8 Saatte Bir</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dakika Sonra -->
+                        <div id="dakikaAlarmDiv" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-600 mb-2">Kaç Dakika Sonra?</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="alarmDakika" placeholder="30" min="1" class="flex-1 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 outline-none">
+                                <span class="flex items-center text-gray-600 font-semibold">dakika</span>
+                            </div>
+                            <div class="flex gap-2 mt-2">
+                                <button onclick="document.getElementById('alarmDakika').value = 5" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm">5 dk</button>
+                                <button onclick="document.getElementById('alarmDakika').value = 15" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm">15 dk</button>
+                                <button onclick="document.getElementById('alarmDakika').value = 30" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm">30 dk</button>
+                                <button onclick="document.getElementById('alarmDakika').value = 60" class="flex-1 bg-gray-100 hover:bg-gray-200 p-2 rounded-lg text-sm">60 dk</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Kronometre -->
+                        <div id="kronometreDiv" class="hidden">
+                            <div class="bg-gray-100 rounded-lg p-4 text-center">
+                                <div id="kronometreSure" class="text-4xl font-bold text-gray-800 mb-3">00:00:00</div>
+                                <div class="flex gap-2 justify-center">
+                                    <button id="kronometreBaslatBtn" onclick="startKronometre()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold">
+                                        <i class="fa-solid fa-play"></i> Başlat
+                                    </button>
+                                    <button id="kronometreDurdurBtn" onclick="stopKronometre()" class="hidden bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold">
+                                        <i class="fa-solid fa-stop"></i> Durdur
+                                    </button>
+                                    <button onclick="resetKronometre()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-bold">
+                                        <i class="fa-solid fa-rotate-right"></i> Sıfırla
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="addAlarm()" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white p-3 rounded-lg font-bold transition-all">
+                            <i class="fa-solid fa-plus mr-2"></i>Hatırlatıcı Ekle
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Aktif Alarmlar -->
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-3">Aktif Hatırlatıcılar</h4>
+                    <div id="alarmList" class="space-y-2">
+                        <!-- Alarmlar buraya eklenecek -->
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeModal('alarmModal')" class="flex-1 p-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AYARLAR -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-gear text-cyan-600"></i>
+                Ayarlar
+            </h3>
+            
+            <div class="space-y-4">
+                <!-- Ekran Parlaklığı -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-3">Ekran Parlaklığı</label>
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-sun text-gray-400"></i>
+                        <input type="range" id="brightnessSlider" min="20" max="100" value="100" class="flex-1" oninput="updateBrightness(this.value)">
+                        <span id="brightnessValue" class="text-gray-700 font-bold w-12">100%</span>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="setBrightness(30)" class="flex-1 bg-gray-700 hover:bg-gray-800 text-white p-2 rounded-lg text-sm">Karanlık</button>
+                        <button onclick="setBrightness(60)" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg text-sm">Orta</button>
+                        <button onclick="setBrightness(100)" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 p-2 rounded-lg text-sm">Parlak</button>
+                    </div>
+                </div>
+
+                <!-- Ses Ayarları -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-3">Alarm Sesi</label>
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-volume-high text-gray-400"></i>
+                        <input type="range" id="volumeSlider" min="0" max="100" value="80" class="flex-1" oninput="updateVolume(this.value)">
+                        <span id="volumeValue" class="text-gray-700 font-bold w-12">80%</span>
+                    </div>
+                </div>
+
+                <!-- Gece Modu -->
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <div class="font-semibold text-gray-800">Gece Modu</div>
+                        <div class="text-sm text-gray-500">Ekranı otomatik karart</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="nightMode" class="sr-only peer" onchange="toggleNightMode()">
+                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                    </label>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeModal('settingsModal')" class="flex-1 p-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALARM BİLDİRİMİ -->
+    <div id="alarmNotification" class="hidden fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 animate-pulse">
+        <div class="flex items-center gap-4">
+            <i class="fa-solid fa-bell-ring text-3xl"></i>
+            <div>
+                <div class="font-bold text-lg">İlaç Zamanı!</div>
+                <div id="alarmMessage" class="text-sm"></div>
+            </div>
+            <button onclick="dismissAlarm()" class="ml-4 bg-white text-red-500 px-4 py-2 rounded-lg font-bold hover:bg-gray-100">
+                Tamam
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: YENİ HASTA KAYDI -->
+    <div id="yeniHastaModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-green-600 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-user-plus"></i>
+                Yeni Hasta Kaydı
+            </h3>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Ad</label>
+                        <input type="text" id="hastaAd" placeholder="Örn: Mehmet" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Soyad</label>
+                        <input type="text" id="hastaSoyad" placeholder="Örn: Yılmaz" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">TC Kimlik No</label>
+                    <input type="text" id="hastaTC" placeholder="11 haneli TC No" maxlength="11" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Doğum Tarihi</label>
+                        <input type="date" id="hastaDogumTarihi" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Cinsiyet</label>
+                        <select id="hastaCinsiyet" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                            <option value="Erkek">Erkek</option>
+                            <option value="Kadın">Kadın</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Kan Grubu</label>
+                    <select id="hastaKanGrubu" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="A+">A Rh+</option>
+                        <option value="A-">A Rh-</option>
+                        <option value="B+">B Rh+</option>
+                        <option value="B-">B Rh-</option>
+                        <option value="AB+">AB Rh+</option>
+                        <option value="AB-">AB Rh-</option>
+                        <option value="0+">0 Rh+</option>
+                        <option value="0-">0 Rh-</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Alerji Bilgisi</label>
+                    <input type="text" id="hastaAlerji" placeholder="Örn: Penisilin, Aspirin (Yoksa boş bırakın)" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Oda No</label>
+                        <input type="text" id="hastaOda" placeholder="Örn: 304" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-2">Yatak No</label>
+                        <input type="text" id="hastaYatak" placeholder="Örn: A" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Servis</label>
+                    <input type="text" id="hastaServis" placeholder="Örn: Sağlık Bakım Teknisyenliği Servisi" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Başvuru Nedeni / Tanı</label>
+                    <textarea id="hastaTani" rows="2" placeholder="Örn: Akut apandisit" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none"></textarea>
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeModal('yeniHastaModal')" class="flex-1 p-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">İptal</button>
+                    <button onclick="submitYeniHasta()" class="flex-1 p-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SESLİ MESAJ -->
+    <div id="sesliMesajModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h3 class="text-xl font-bold text-orange-600 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-microphone"></i>
+                Hemşireye Sesli Mesaj
+            </h3>
+            <div class="space-y-4">
+                <div class="bg-orange-50 border-2 border-orange-200 rounded-lg p-6 text-center">
+                    <div id="sesKayitDurum" class="mb-4">
+                        <i class="fa-solid fa-microphone text-6xl text-orange-600 mb-3"></i>
+                        <p class="text-gray-700 font-semibold">Mesajınızı Kaydetmek İçin Butona Basın</p>
+                    </div>
+                    
+                    <div id="sesKayitSuresi" class="hidden text-3xl font-bold text-orange-600 mb-2">00:00</div>
+                    
+                    <button id="sesKayitBtn" onclick="toggleSesKayit()" class="bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-lg">
+                        <i class="fa-solid fa-circle text-red-500 mr-2"></i>
+                        Kayda Başla
+                    </button>
+                </div>
+                
+                <div id="mesajOnizleme" class="hidden bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-gray-700">Kaydedilen Mesaj:</span>
+                        <span id="mesajSuresi" class="text-sm text-gray-500"></span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="dinleMesaj()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg text-sm">
+                            <i class="fa-solid fa-play mr-1"></i> Dinle
+                        </button>
+                        <button onclick="yenidenKaydet()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg text-sm">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> Yeniden Kaydet
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Mesaj Türü (Opsiyonel)</label>
+                    <select id="mesajTuru" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <option value="Genel">Genel Talep</option>
+                        <option value="Acil">Acil Durum</option>
+                        <option value="İlaç">İlaç Talebi</option>
+                        <option value="Ağrı">Ağrı Şikayeti</option>
+                        <option value="Yardım">Yardım Talebi</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeModal('sesliMesajModal'); resetSesKayit();" class="flex-1 p-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">İptal</button>
+                    <button id="gonderBtn" onclick="gonderSesliMesaj()" class="flex-1 p-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed" disabled>Gönder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AI ASİSTAN -->
+    <div id="aiAsistanModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                <h3 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-2">
+                    <i class="fa-solid fa-robot text-purple-600"></i>
+                    YAHİS AI Asistan
+                </h3>
+                <button onclick="closeModal('aiAsistanModal'); stopAISpeech();" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div id="aiChatBox" class="flex-1 overflow-y-auto mb-4 space-y-3 bg-gray-50 rounded-lg p-4" style="max-height: 400px;">
+                <div class="flex gap-3">
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="bg-white rounded-lg p-3 shadow-sm flex-1">
+                        <p class="text-gray-800 text-lg">Merhaba! Ben YAHİS sistemi yapay zeka asistanıyım. Size nasıl yardımcı olabilirim?</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-6 text-center">
+                <div id="aiMicStatus" class="mb-4">
+                    <i id="aiMicIcon" class="fa-solid fa-microphone text-6xl text-purple-600 mb-3"></i>
+                    <p id="aiStatusText" class="text-gray-700 font-semibold text-lg">Konuşmak için mikrofon butonuna basın</p>
+                </div>
+                
+                <button id="aiMicBtn" onclick="toggleAISpeech()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-12 py-6 rounded-full font-bold text-xl transition-all shadow-lg">
+                    <i class="fa-solid fa-microphone text-3xl"></i>
+                </button>
+                
+                <p class="text-sm text-gray-500 mt-4">Örnek: "Hasta bir bardak su içti" veya "Yemek yedi"</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- EKRAN KLAVYESİ -->
+    <div id="screenKeyboard" class="hidden fixed bottom-0 left-0 right-0 bg-gray-800 shadow-2xl z-[60] p-4">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex justify-between items-center mb-3">
+                <h4 class="text-white font-bold text-lg">Klavye</h4>
+                <button onclick="closeKeyboard()" class="text-white hover:text-red-400">
+                    <i class="fa-solid fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-2">
+                <!-- Sayı satırı -->
+                <div class="flex gap-2 justify-center">
+                    <button onclick="typeKey('1')" class="keyboard-key">1</button>
+                    <button onclick="typeKey('2')" class="keyboard-key">2</button>
+                    <button onclick="typeKey('3')" class="keyboard-key">3</button>
+                    <button onclick="typeKey('4')" class="keyboard-key">4</button>
+                    <button onclick="typeKey('5')" class="keyboard-key">5</button>
+                    <button onclick="typeKey('6')" class="keyboard-key">6</button>
+                    <button onclick="typeKey('7')" class="keyboard-key">7</button>
+                    <button onclick="typeKey('8')" class="keyboard-key">8</button>
+                    <button onclick="typeKey('9')" class="keyboard-key">9</button>
+                    <button onclick="typeKey('0')" class="keyboard-key">0</button>
+                </div>
+                
+                <!-- 1. harf satırı -->
+                <div class="flex gap-2 justify-center">
+                    <button onclick="typeKey('Q')" class="keyboard-key">Q</button>
+                    <button onclick="typeKey('W')" class="keyboard-key">W</button>
+                    <button onclick="typeKey('E')" class="keyboard-key">E</button>
+                    <button onclick="typeKey('R')" class="keyboard-key">R</button>
+                    <button onclick="typeKey('T')" class="keyboard-key">T</button>
+                    <button onclick="typeKey('Y')" class="keyboard-key">Y</button>
+                    <button onclick="typeKey('U')" class="keyboard-key">U</button>
+                    <button onclick="typeKey('I')" class="keyboard-key">I</button>
+                    <button onclick="typeKey('O')" class="keyboard-key">O</button>
+                    <button onclick="typeKey('P')" class="keyboard-key">P</button>
+                    <button onclick="typeKey('Ğ')" class="keyboard-key">Ğ</button>
+                    <button onclick="typeKey('Ü')" class="keyboard-key">Ü</button>
+                </div>
+                
+                <!-- 2. harf satırı -->
+                <div class="flex gap-2 justify-center">
+                    <button onclick="typeKey('A')" class="keyboard-key">A</button>
+                    <button onclick="typeKey('S')" class="keyboard-key">S</button>
+                    <button onclick="typeKey('D')" class="keyboard-key">D</button>
+                    <button onclick="typeKey('F')" class="keyboard-key">F</button>
+                    <button onclick="typeKey('G')" class="keyboard-key">G</button>
+                    <button onclick="typeKey('H')" class="keyboard-key">H</button>
+                    <button onclick="typeKey('J')" class="keyboard-key">J</button>
+                    <button onclick="typeKey('K')" class="keyboard-key">K</button>
+                    <button onclick="typeKey('L')" class="keyboard-key">L</button>
+                    <button onclick="typeKey('Ş')" class="keyboard-key">Ş</button>
+                    <button onclick="typeKey('İ')" class="keyboard-key">İ</button>
+                </div>
+                
+                <!-- 3. harf satırı -->
+                <div class="flex gap-2 justify-center">
+                    <button onclick="typeKey('Z')" class="keyboard-key">Z</button>
+                    <button onclick="typeKey('X')" class="keyboard-key">X</button>
+                    <button onclick="typeKey('C')" class="keyboard-key">C</button>
+                    <button onclick="typeKey('V')" class="keyboard-key">V</button>
+                    <button onclick="typeKey('B')" class="keyboard-key">B</button>
+                    <button onclick="typeKey('N')" class="keyboard-key">N</button>
+                    <button onclick="typeKey('M')" class="keyboard-key">M</button>
+                    <button onclick="typeKey('Ö')" class="keyboard-key">Ö</button>
+                    <button onclick="typeKey('Ç')" class="keyboard-key">Ç</button>
+                </div>
+                
+                <!-- Kontrol tuşları -->
+                <div class="flex gap-2 justify-center">
+                    <button onclick="typeKey(' ')" class="bg-gray-600 hover:bg-gray-500 text-white px-32 py-4 rounded-lg font-bold text-lg">BOŞLUK</button>
+                    <button onclick="typeBackspace()" class="bg-red-600 hover:bg-red-500 text-white px-12 py-4 rounded-lg font-bold text-lg">
+                        <i class="fa-solid fa-delete-left"></i> SİL
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Klavye Açma Butonu -->
+    <button id="keyboardToggleBtn" onclick="toggleKeyboard()" class="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg z-40">
+        <i class="fa-solid fa-keyboard text-2xl"></i>
+    </button>
+
+    <style>
+        .keyboard-key {
+            background-color: #4B5563;
+            color: white;
+            padding: 18px 22px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 20px;
+            min-width: 65px;
+            transition: all 0.2s;
+        }
+        .keyboard-key:hover {
+            background-color: #6B7280;
+            transform: scale(1.05);
+        }
+        .keyboard-key:active {
+            background-color: #374151;
+            transform: scale(0.95);
+        }
+        
+        /* Modal içeriğini klavye açıldığında yukarı kaydır */
+        .modal-with-keyboard {
+            padding-bottom: 380px !important;
+        }
+    </style>
+
+    <script>
+        // Sıvı dengesi hesaplama
+        let totalGiris = 0; // Su içme
+        let totalCikis = 0; // İdrar
+
+        // Hasta bilgileri
+        let currentPatient = {
+            ad: 'Ahmet',
+            soyad: 'Nazlı',
+            tc: '12345678901',
+            id: '73892',
+            kanGrubu: 'A+',
+            alerji: 'PENİSİLİN',
+            oda: '304',
+            yatak: 'B',
+            servis: 'Sağlık Bakım Teknisyenliği Servisi'
+        };
+
+        // Alarm sistemi
+        let alarms = [];
+        let alarmCheckInterval = null;
+        let currentBrightness = 100;
+        let currentVolume = 80;
+
+        // EKRAN KLAVYESİ
+        let activeInput = null;
+
+        function toggleKeyboard() {
+            const keyboard = document.getElementById('screenKeyboard');
+            const modals = document.querySelectorAll('.fixed.inset-0.bg-black\\/50');
+            
+            if (keyboard.classList.contains('hidden')) {
+                keyboard.classList.remove('hidden');
+                // Açık modalları yukarı kaydır
+                modals.forEach(modal => {
+                    if (!modal.classList.contains('hidden')) {
+                        const modalContent = modal.querySelector('.bg-white');
+                        if (modalContent) {
+                            modalContent.classList.add('modal-with-keyboard');
+                        }
+                    }
+                });
+            } else {
+                keyboard.classList.add('hidden');
+                // Modal padding'i kaldır
+                modals.forEach(modal => {
+                    const modalContent = modal.querySelector('.bg-white');
+                    if (modalContent) {
+                        modalContent.classList.remove('modal-with-keyboard');
+                    }
+                });
+            }
+        }
+
+        function closeKeyboard() {
+            document.getElementById('screenKeyboard').classList.add('hidden');
+            
+            // Modal padding'i kaldır
+            const modals = document.querySelectorAll('.fixed.inset-0.bg-black\\/50');
+            modals.forEach(modal => {
+                const modalContent = modal.querySelector('.bg-white');
+                if (modalContent) {
+                    modalContent.classList.remove('modal-with-keyboard');
+                }
+            });
+            
+            if (activeInput) {
+                activeInput.blur();
+                activeInput = null;
+            }
+        }
+
+        function typeKey(key) {
+            if (activeInput) {
+                const start = activeInput.selectionStart;
+                const end = activeInput.selectionEnd;
+                const text = activeInput.value;
+                
+                activeInput.value = text.substring(0, start) + key + text.substring(end);
+                activeInput.selectionStart = activeInput.selectionEnd = start + key.length;
+                activeInput.focus();
+            }
+        }
+
+        function typeBackspace() {
+            if (activeInput) {
+                const start = activeInput.selectionStart;
+                const end = activeInput.selectionEnd;
+                const text = activeInput.value;
+                
+                if (start !== end) {
+                    // Seçili metin varsa sil
+                    activeInput.value = text.substring(0, start) + text.substring(end);
+                    activeInput.selectionStart = activeInput.selectionEnd = start;
+                } else if (start > 0) {
+                    // Bir karakter geri sil
+                    activeInput.value = text.substring(0, start - 1) + text.substring(start);
+                    activeInput.selectionStart = activeInput.selectionEnd = start - 1;
+                }
+                activeInput.focus();
+            }
+        }
+
+        // Tüm input ve textarea'lara klavye açma özelliği ekle
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="text"], input[type="number"], textarea');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    activeInput = this;
+                    const keyboard = document.getElementById('screenKeyboard');
+                    keyboard.classList.remove('hidden');
+                    
+                    // Modal içeriğini yukarı kaydır
+                    const modal = this.closest('.fixed.inset-0.bg-black\\/50');
+                    if (modal) {
+                        const modalContent = modal.querySelector('.bg-white');
+                        if (modalContent) {
+                            modalContent.classList.add('modal-with-keyboard');
+                            // Input'u görünür yap
+                            setTimeout(() => {
+                                this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 100);
+                        }
+                    }
+                });
+            });
+        });
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+            if (id === 'cikisModal' || id === 'yeniHastaModal') {
+                closeMenu();
+            }
+            
+            // AI Asistan açıldığında karşılama mesajını sesli söyle
+            if (id === 'aiAsistanModal') {
+                setTimeout(() => {
+                    speakAI('Merhaba! Ben YAHİS sistemi yapay zeka asistanıyım. Size nasıl yardımcı olabilirim?');
+                }, 500);
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+            
+            // AI Asistan kapatılırken konuşmayı ve dinlemeyi durdur
+            if (id === 'aiAsistanModal') {
+                stopAISpeech();
+                aiSpeechSynthesis.cancel(); // Konuşmayı durdur
+                aiConversationState = null; // Konuşma durumunu sıfırla
+                aiPendingData = {};
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.remove('hidden');
+        }
+
+        function closeMenu() {
+            document.getElementById('sideMenu').classList.add('hidden');
+        }
+
+        function toggleRaporlar() {
+            const menu = document.getElementById('raporlarMenu');
+            const chevron = document.getElementById('raporlarChevron');
+            
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                menu.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+        }
+
+        function openRapor(tip) {
+            closeMenu();
+            document.getElementById('raporSayfasi').classList.remove('hidden');
+            
+            const baslik = document.getElementById('raporBaslik');
+            const icerik = document.getElementById('raporIcerik');
+            
+            if (tip === 'tahlil') {
+                baslik.textContent = 'Tahlil Sonuçları';
+                icerik.innerHTML = getTahlilRaporu();
+            } else if (tip === 'ekg') {
+                baslik.textContent = 'EKG Sonuçları';
+                icerik.innerHTML = getEKGRaporu();
+            } else if (tip === 'mri') {
+                baslik.textContent = 'MR Sonuçları';
+                icerik.innerHTML = getMRRaporu();
+            } else if (tip === 'xray') {
+                baslik.textContent = 'Röntgen Sonuçları';
+                icerik.innerHTML = getXRayRaporu();
+            }
+        }
+
+        function closeRapor() {
+            document.getElementById('raporSayfasi').classList.add('hidden');
+        }
+
+        function getTahlilRaporu() {
+            return '<div class="max-w-4xl mx-auto space-y-6">' +
+                '<div class="bg-white rounded-lg shadow-md p-6">' +
+                '<h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">' +
+                '<i class="fa-solid fa-flask text-blue-600"></i>Tam Kan Sayımı (Hemogram)' +
+                '</h3>' +
+                '<div class="text-sm text-gray-500 mb-4">Tarih: 10 Şubat 2026 - 09:30</div>' +
+                '<div class="grid grid-cols-3 gap-4">' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">Hemoglobin</div><div class="text-lg font-bold text-gray-800">14.2 g/dL</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">Lökosit</div><div class="text-lg font-bold text-gray-800">7.8 K/uL</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">Trombosit</div><div class="text-lg font-bold text-gray-800">245 K/uL</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">Hematokrit</div><div class="text-lg font-bold text-gray-800">42.5 %</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">MCV</div><div class="text-lg font-bold text-gray-800">88 fL</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">MCH</div><div class="text-lg font-bold text-gray-800">29 pg</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '</div></div>' +
+                '<div class="bg-white rounded-lg shadow-md p-6">' +
+                '<h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">' +
+                '<i class="fa-solid fa-vial text-blue-600"></i>Biyokimya' +
+                '</h3>' +
+                '<div class="text-sm text-gray-500 mb-4">Tarih: 10 Şubat 2026 - 09:30</div>' +
+                '<div class="grid grid-cols-3 gap-4">' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">Glukoz</div><div class="text-lg font-bold text-gray-800">95 mg/dL</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">Üre</div><div class="text-lg font-bold text-gray-800">32 mg/dL</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">Kreatinin</div><div class="text-lg font-bold text-gray-800">0.9 mg/dL</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">ALT</div><div class="text-lg font-bold text-gray-800">28 U/L</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">AST</div><div class="text-lg font-bold text-gray-800">24 U/L</div><div class="text-xs text-green-600">Normal</div></div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg"><div class="text-sm text-gray-600">CRP</div><div class="text-lg font-bold text-orange-600">12 mg/L</div><div class="text-xs text-orange-600">Yüksek</div></div>' +
+                '</div></div></div>';
+        }
+
+        function getEKGRaporu() {
+            return '<div class="max-w-4xl mx-auto space-y-6">' +
+                '<div class="bg-white rounded-lg shadow-md p-6">' +
+                '<h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">' +
+                '<i class="fa-solid fa-heart-pulse text-red-600"></i>12 Derivasyonlu EKG' +
+                '</h3>' +
+                '<div class="text-sm text-gray-500 mb-4">Tarih: 9 Şubat 2026 - 14:20</div>' +
+                '<div class="bg-gray-50 p-6 rounded-lg mb-4">' +
+                '<div class="grid grid-cols-2 gap-4">' +
+                '<div><div class="text-sm text-gray-600">Kalp Hızı</div><div class="text-2xl font-bold text-gray-800">72 atım/dk</div></div>' +
+                '<div><div class="text-sm text-gray-600">Ritim</div><div class="text-2xl font-bold text-gray-800">Sinüs Ritmi</div></div>' +
+                '<div><div class="text-sm text-gray-600">PR Aralığı</div><div class="text-lg font-bold text-gray-800">160 ms</div></div>' +
+                '<div><div class="text-sm text-gray-600">QRS Süresi</div><div class="text-lg font-bold text-gray-800">88 ms</div></div>' +
+                '<div><div class="text-sm text-gray-600">QT Aralığı</div><div class="text-lg font-bold text-gray-800">380 ms</div></div>' +
+                '<div><div class="text-sm text-gray-600">QTc</div><div class="text-lg font-bold text-gray-800">410 ms</div></div>' +
+                '</div></div>' +
+                '<div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">' +
+                '<div class="font-bold text-green-800 mb-2">Değerlendirme</div>' +
+                '<div class="text-sm text-gray-700">Normal sinüs ritmi. Patolojik bulgu saptanmadı.</div>' +
+                '</div></div></div>';
+        }
+
+        function getMRRaporu() {
+            return '<div class="max-w-4xl mx-auto space-y-6">' +
+                '<div class="bg-white rounded-lg shadow-md p-6">' +
+                '<h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">' +
+                '<i class="fa-solid fa-brain text-purple-600"></i>Beyin MR' +
+                '</h3>' +
+                '<div class="text-sm text-gray-500 mb-4">Tarih: 8 Şubat 2026 - 16:00</div>' +
+                '<div class="space-y-4">' +
+                '<div class="bg-gray-50 p-4 rounded-lg">' +
+                '<div class="font-semibold text-gray-800 mb-2">Teknik:</div>' +
+                '<div class="text-sm text-gray-700">1.5 Tesla MR cihazı ile aksiyel T1, T2, FLAIR ve koronal T2 ağırlıklı görüntüler alındı.</div>' +
+                '</div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg">' +
+                '<div class="font-semibold text-gray-800 mb-2">Bulgular:</div>' +
+                '<div class="text-sm text-gray-700 space-y-2">' +
+                '<div>• Serebral parankimde yaş ile uyumlu görünüm izlenmektedir.</div>' +
+                '<div>• Ventriküler sistem normal boyut ve konfigürasyondadır.</div>' +
+                '<div>• Orta hat yapıları santraldir.</div>' +
+                '<div>• Beyin sapı ve serebellar yapılar doğaldır.</div>' +
+                '<div>• Patolojik kontrastlanma izlenmemiştir.</div>' +
+                '</div></div>' +
+                '<div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">' +
+                '<div class="font-bold text-green-800 mb-2">Sonuç</div>' +
+                '<div class="text-sm text-gray-700">Beyin MR incelemesinde patolojik bulgu saptanmadı.</div>' +
+                '</div></div></div></div>';
+        }
+
+        function getXRayRaporu() {
+            return '<div class="max-w-4xl mx-auto space-y-6">' +
+                '<div class="bg-white rounded-lg shadow-md p-6">' +
+                '<h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">' +
+                '<i class="fa-solid fa-x-ray text-green-600"></i>Akciğer Grafisi (PA)' +
+                '</h3>' +
+                '<div class="text-sm text-gray-500 mb-4">Tarih: 7 Şubat 2026 - 10:15</div>' +
+                '<div class="space-y-4">' +
+                '<div class="bg-gray-50 p-4 rounded-lg">' +
+                '<div class="font-semibold text-gray-800 mb-2">Teknik:</div>' +
+                '<div class="text-sm text-gray-700">Posteroanterior akciğer grafisi çekildi.</div>' +
+                '</div>' +
+                '<div class="bg-gray-50 p-4 rounded-lg">' +
+                '<div class="font-semibold text-gray-800 mb-2">Bulgular:</div>' +
+                '<div class="text-sm text-gray-700 space-y-2">' +
+                '<div>• Her iki akciğer alanı havalanması doğaldır.</div>' +
+                '<div>• Kalp gölgesi normal boyut ve konturlardadır.</div>' +
+                '<div>• Mediastinal yapılar doğal seyirlidir.</div>' +
+                '<div>• Kostofrenik sinüsler açıktır.</div>' +
+                '<div>• Kemik yapılarda patoloji izlenmemiştir.</div>' +
+                '</div></div>' +
+                '<div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">' +
+                '<div class="font-bold text-green-800 mb-2">Sonuç</div>' +
+                '<div class="text-sm text-gray-700">Akciğer grafisinde aktif patolojik bulgu saptanmadı.</div>' +
+                '</div></div></div></div>';
+        }
+
+        function addLog(type, detail, borderColor = 'border-emerald-500') {
+            const logContainer = document.getElementById('actionLog');
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            
+            const entry = document.createElement('div');
+            entry.className = 'log-entry text-sm border-l-4 ' + borderColor + ' pl-3 py-2';
+            entry.innerHTML = '<div class="text-xs text-gray-500">' + timeStr + ' — ' + type + '</div><div class="text-gray-700">' + detail + '</div>';
+            
+            logContainer.prepend(entry);
+        }
+
+        function addRefakatciLog(icon, detail, miktar = '') {
+            const logContainer = document.getElementById('refakatciLog');
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            
+            const entry = document.createElement('div');
+            entry.className = 'text-xs bg-gray-50 rounded-lg p-2 border-l-4 border-cyan-500';
+            entry.innerHTML = '<div class="flex items-center gap-2"><i class="' + icon + ' text-cyan-600"></i><div><div class="font-semibold text-gray-800">' + detail + '</div><div class="text-gray-500">' + timeStr + (miktar ? ' — ' + miktar : '') + '</div></div></div>';
+            
+            logContainer.prepend(entry);
+        }
+
+        function updateSivilDenge() {
+            const denge = totalGiris - totalCikis;
+            const dengeElement = document.querySelector('.text-2xl');
+            if (dengeElement) {
+                dengeElement.textContent = (denge >= 0 ? '+ ' : '- ') + Math.abs(denge) + 'ml';
+                dengeElement.className = 'text-gray-800 font-medium text-2xl ' + (denge >= 0 ? 'text-green-600' : 'text-red-600');
+            }
+        }
+
+        function updatePatientInfo() {
+            // Hasta bilgilerini güncelle
+            const hastaSpan = document.querySelector('.bg-white.px-6.py-3 .font-bold.text-gray-800');
+            if (hastaSpan) {
+                hastaSpan.textContent = currentPatient.ad + ' ' + currentPatient.soyad + ' (ID: ' + currentPatient.id + ')';
+            }
+            
+            // Oda/Yatak bilgisi güncelle
+            const odaSpan = document.querySelector('.font-bold.text-purple-600');
+            if (odaSpan) {
+                odaSpan.textContent = currentPatient.oda + '-' + currentPatient.yatak;
+            }
+            
+            // Alerji bilgisi güncelle
+            const alerjiSpan = document.querySelector('.font-bold.text-red-600');
+            if (alerjiSpan) {
+                if (currentPatient.alerji) {
+                    alerjiSpan.textContent = currentPatient.alerji;
+                } else {
+                    alerjiSpan.textContent = 'YOK';
+                }
+            }
+            
+            // Kan grubu güncelle
+            const kanSpan = document.querySelector('.font-bold.text-blue-600');
+            if (kanSpan) {
+                kanSpan.textContent = currentPatient.kanGrubu;
+            }
+        }
+
+        function submitSu() {
+            const miktar = document.getElementById('suMiktar').value;
+            if (miktar && miktar > 0) {
+                totalGiris += parseInt(miktar);
+                addRefakatciLog('fa-solid fa-glass-water', 'Su İçti', miktar + 'ml');
+                updateSivilDenge();
+                closeModal('suModal');
+                document.getElementById('suMiktar').value = '';
+            } else {
+                alert('Lütfen geçerli bir miktar girin.');
+            }
+        }
+
+        function submitYemek() {
+            const tur = document.getElementById('yemekTur').value;
+            const porsiyon = document.getElementById('yemekPorsiyon').value;
+            const not = document.getElementById('yemekNot').value;
+            
+            if (tur) {
+                let detay = 'Yemek: ' + tur;
+                
+                // Çorba ise türünü ekle
+                const corbaDetayDiv = document.getElementById('corbaDetayDiv');
+                if (!corbaDetayDiv.classList.contains('hidden')) {
+                    const corbaTuru = document.getElementById('corbaTuru').value;
+                    detay += ' (' + corbaTuru + ')';
+                }
+                
+                detay += ' - ' + porsiyon;
+                
+                if (not) {
+                    detay += ' | ' + not;
+                }
+                
+                addRefakatciLog('fa-solid fa-utensils', detay, '');
+                closeModal('yemekModal');
+                document.getElementById('yemekTur').value = '';
+                document.getElementById('yemekNot').value = '';
+                document.getElementById('corbaDetayDiv').classList.add('hidden');
+            } else {
+                alert('Lütfen yemek türünü girin.');
+            }
+        }
+
+        // Yemek türü değiştiğinde çorba detayını göster/gizle
+        document.addEventListener('DOMContentLoaded', function() {
+            const yemekTurInput = document.getElementById('yemekTur');
+            if (yemekTurInput) {
+                yemekTurInput.addEventListener('input', function() {
+                    const value = this.value.toLowerCase();
+                    const corbaDetayDiv = document.getElementById('corbaDetayDiv');
+                    
+                    if (value.includes('çorba') || value.includes('corba')) {
+                        corbaDetayDiv.classList.remove('hidden');
+                    } else {
+                        corbaDetayDiv.classList.add('hidden');
+                    }
+                });
+            }
+        });
+
+        function submitTuvalet() {
+            const tur = document.getElementById('tuvaletTur').value;
+            const miktar = document.getElementById('idrarMiktar').value;
+            
+            if (tur === 'Küçük Abdest') {
+                if (miktar && miktar > 0) {
+                    totalCikis += parseInt(miktar);
+                    addRefakatciLog('fa-solid fa-restroom', 'Tuvalet: ' + tur, miktar + 'ml');
+                    updateSivilDenge();
+                } else {
+                    alert('Lütfen idrar miktarını girin.');
+                    return;
+                }
+            } else if (tur === 'Büyük Abdest') {
+                // Büyük abdest için miktar gerekmez
+                addRefakatciLog('fa-solid fa-restroom', 'Tuvalet: ' + tur, '');
+            }
+            
+            closeModal('tuvaletModal');
+            document.getElementById('idrarMiktar').value = '';
+        }
+
+        function submitPersonelIslem() {
+            const ad = document.getElementById('personelAd').value;
+            const gorev = document.getElementById('personelGorev').value;
+            const islem = document.getElementById('personelIslem').value;
+            
+            // Vital bulgular
+            const ates = document.getElementById('vitalAtes').value;
+            const nabiz = document.getElementById('vitalNabiz').value;
+            const tansiyon = document.getElementById('vitalTansiyon').value;
+            const spo2 = document.getElementById('vitalSpo2').value;
+            const solunum = document.getElementById('vitalSolunum').value;
+            
+            // Alarm bilgileri
+            const alarmIlac = document.getElementById('personelAlarmIlac').value;
+            const alarmSaat = document.getElementById('personelAlarmSaat').value;
+            const alarmTekrar = document.getElementById('personelAlarmTekrar').value;
+            
+            if (ad && islem) {
+                let detay = islem;
+                
+                // Vital bulgular girildiyse ekle
+                if (ates || nabiz || tansiyon || spo2 || solunum) {
+                    detay += ' | Vital: ';
+                    const vitals = [];
+                    if (ates) vitals.push('Ateş: ' + ates + '°C');
+                    if (nabiz) vitals.push('Nabız: ' + nabiz);
+                    if (tansiyon) vitals.push('Tansiyon: ' + tansiyon);
+                    if (spo2) vitals.push('SpO2: ' + spo2 + '%');
+                    if (solunum) vitals.push('Solunum: ' + solunum);
+                    detay += vitals.join(', ');
+                }
+                
+                addLog(gorev + ' ' + ad, detay, 'border-cyan-500');
+                
+                // Anlık verileri güncelle
+                updateVitalSigns(ates, nabiz, tansiyon, spo2, solunum);
+                
+                // Alarm eklendiyse kaydet
+                if (alarmIlac && alarmSaat) {
+                    const alarm = {
+                        id: Date.now(),
+                        ilac: alarmIlac,
+                        saat: alarmSaat,
+                        tekrar: alarmTekrar,
+                        aktif: true,
+                        personel: gorev + ' ' + ad,
+                        tip: 'personel'
+                    };
+                    
+                    alarms.push(alarm);
+                    updateAlarmBadge();
+                    
+                    // Alarm kontrolünü başlat
+                    if (!alarmCheckInterval) {
+                        alarmCheckInterval = setInterval(checkAlarms, 30000);
+                    }
+                    
+                    // Log ekle
+                    addLog(gorev + ' ' + ad, 'İlaç hatırlatıcı eklendi: ' + alarmIlac + ' - ' + alarmSaat + ' (' + getTekrarText(alarmTekrar) + ')', 'border-purple-500');
+                }
+                
+                closeModal('nfcModal');
+                
+                // Formu temizle
+                document.getElementById('personelAd').value = '';
+                document.getElementById('personelIslem').value = '';
+                document.getElementById('vitalAtes').value = '';
+                document.getElementById('vitalNabiz').value = '';
+                document.getElementById('vitalTansiyon').value = '';
+                document.getElementById('vitalSpo2').value = '';
+                document.getElementById('vitalSolunum').value = '';
+                document.getElementById('personelAlarmIlac').value = '';
+                document.getElementById('personelAlarmSaat').value = '';
+            } else {
+                alert('Lütfen ad ve işlem bilgilerini girin.');
+            }
+        }
+
+        function updateVitalSigns(ates, nabiz, tansiyon, spo2, solunum) {
+            // Manuel girilen değerleri simülasyon değerlerine aktar
+            if (ates) {
+                currentVitals.ates = parseFloat(ates);
+            }
+            if (nabiz) {
+                currentVitals.nabiz = parseInt(nabiz);
+            }
+            if (tansiyon) {
+                const parts = tansiyon.split('/');
+                if (parts.length === 2) {
+                    currentVitals.tansiyon.sistolik = parseInt(parts[0]);
+                    currentVitals.tansiyon.diyastolik = parseInt(parts[1]);
+                }
+            }
+            if (spo2) {
+                currentVitals.spo2 = parseInt(spo2);
+            }
+            if (solunum) {
+                currentVitals.solunum = parseInt(solunum);
+            }
+            
+            // Ekranı hemen güncelle
+            displayVitalSigns();
+        }
+
+        function submitHastaCikis() {
+            const personelAd = document.getElementById('cikisPersonelAd').value;
+            const not = document.getElementById('cikisNotu').value;
+            
+            if (!personelAd) {
+                alert('Lütfen personel adını girin veya NFC kartınızı okutun.');
+                return;
+            }
+            
+            if (confirm(`${currentPatient.ad} ${currentPatient.soyad} (TC: ${currentPatient.tc}) hasta çıkışı yapılacak. Onaylıyor musunuz?`)) {
+                addLog(`Sistem - ${personelAd}`, `HASTA ÇIKIŞI: ${currentPatient.ad} ${currentPatient.soyad} taburcu edildi. ${not ? 'Not: ' + not : ''}`, 'border-red-600');
+                
+                alert('Hasta çıkışı başarıyla tamamlandı!');
+                closeModal('cikisModal');
+                
+                // Kayıtları temizle
+                setTimeout(() => {
+                    if (confirm('Yeni hasta kaydı yapmak ister misiniz?')) {
+                        openModal('yeniHastaModal');
+                    }
+                }, 500);
+            }
+        }
+
+        function submitYeniHasta() {
+            const ad = document.getElementById('hastaAd').value;
+            const soyad = document.getElementById('hastaSoyad').value;
+            const tc = document.getElementById('hastaTC').value;
+            const kanGrubu = document.getElementById('hastaKanGrubu').value;
+            const alerji = document.getElementById('hastaAlerji').value;
+            const oda = document.getElementById('hastaOda').value;
+            const yatak = document.getElementById('hastaYatak').value;
+            const servis = document.getElementById('hastaServis').value;
+            
+            if (!ad || !soyad || !tc || tc.length !== 11) {
+                alert('Lütfen tüm zorunlu alanları doldurun. TC No 11 haneli olmalıdır.');
+                return;
+            }
+            
+            // Yeni hasta ID oluştur
+            const newId = Math.floor(Math.random() * 90000) + 10000;
+            
+            // Hasta bilgilerini güncelle
+            currentPatient = {
+                ad: ad,
+                soyad: soyad,
+                tc: tc,
+                id: newId.toString(),
+                kanGrubu: kanGrubu,
+                alerji: alerji,
+                oda: oda,
+                yatak: yatak,
+                servis: servis
+            };
+            
+            // Sıvı dengesini sıfırla
+            totalGiris = 0;
+            totalCikis = 0;
+            
+            // Kayıtları temizle
+            document.getElementById('actionLog').innerHTML = '';
+            document.getElementById('refakatciLog').innerHTML = '';
+            
+            // Hasta bilgilerini ekranda güncelle
+            updatePatientInfo();
+            updateSivilDenge();
+            
+            // Formu temizle
+            document.getElementById('hastaAd').value = '';
+            document.getElementById('hastaSoyad').value = '';
+            document.getElementById('hastaTC').value = '';
+            document.getElementById('hastaAlerji').value = '';
+            document.getElementById('hastaOda').value = '';
+            document.getElementById('hastaYatak').value = '';
+            document.getElementById('hastaServis').value = '';
+            
+            closeModal('yeniHastaModal');
+            
+            addLog('Sistem', `YENİ HASTA KAYDI: ${ad} ${soyad} (ID: #${newId}) sisteme kaydedildi.`, 'border-green-600');
+            
+            alert(`Hasta kaydı başarıyla oluşturuldu!\nHasta ID: #${newId}`);
+        }
+
+        // ALARM FONKSİYONLARI
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordingInterval = null;
+        let recordingSeconds = 0;
+        let recordedAudioBlob = null;
+
+        function toggleSesKayit() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                // Kaydı durdur
+                mediaRecorder.stop();
+                clearInterval(recordingInterval);
+                document.getElementById('sesKayitBtn').innerHTML = '<i class="fa-solid fa-circle text-red-500 mr-2"></i>Kayda Başla';
+                document.getElementById('sesKayitBtn').classList.remove('bg-red-600', 'hover:bg-red-700');
+                document.getElementById('sesKayitBtn').classList.add('bg-orange-600', 'hover:bg-orange-700');
+            } else {
+                // Kayda başla
+                startSesKayit();
+            }
+        }
+
+        function startSesKayit() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    recordingSeconds = 0;
+                    
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        recordedAudioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        document.getElementById('mesajOnizleme').classList.remove('hidden');
+                        document.getElementById('mesajSuresi').textContent = formatTime(recordingSeconds);
+                        document.getElementById('gonderBtn').disabled = false;
+                        
+                        // Mikrofonu kapat
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    
+                    mediaRecorder.start();
+                    
+                    // UI güncelle
+                    document.getElementById('sesKayitDurum').innerHTML = '<i class="fa-solid fa-microphone-lines text-6xl text-red-600 mb-3 animate-pulse"></i><p class="text-gray-700 font-semibold">Kayıt Yapılıyor...</p>';
+                    document.getElementById('sesKayitSuresi').classList.remove('hidden');
+                    document.getElementById('sesKayitBtn').innerHTML = '<i class="fa-solid fa-stop mr-2"></i>Kaydı Durdur';
+                    document.getElementById('sesKayitBtn').classList.remove('bg-orange-600', 'hover:bg-orange-700');
+                    document.getElementById('sesKayitBtn').classList.add('bg-red-600', 'hover:bg-red-700');
+                    
+                    // Süre sayacı
+                    recordingInterval = setInterval(() => {
+                        recordingSeconds++;
+                        document.getElementById('sesKayitSuresi').textContent = formatTime(recordingSeconds);
+                    }, 1000);
+                })
+                .catch(err => {
+                    alert('Mikrofon erişimi reddedildi veya hata oluştu: ' + err.message);
+                });
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0');
+        }
+
+        function dinleMesaj() {
+            if (recordedAudioBlob) {
+                const audioUrl = URL.createObjectURL(recordedAudioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+            }
+        }
+
+        function yenidenKaydet() {
+            resetSesKayit();
+            document.getElementById('mesajOnizleme').classList.add('hidden');
+            document.getElementById('gonderBtn').disabled = true;
+        }
+
+        function resetSesKayit() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            clearInterval(recordingInterval);
+            recordingSeconds = 0;
+            audioChunks = [];
+            recordedAudioBlob = null;
+            
+            document.getElementById('sesKayitDurum').innerHTML = '<i class="fa-solid fa-microphone text-6xl text-orange-600 mb-3"></i><p class="text-gray-700 font-semibold">Mesajınızı Kaydetmek İçin Butona Basın</p>';
+            document.getElementById('sesKayitSuresi').classList.add('hidden');
+            document.getElementById('sesKayitSuresi').textContent = '00:00';
+            document.getElementById('sesKayitBtn').innerHTML = '<i class="fa-solid fa-circle text-red-500 mr-2"></i>Kayda Başla';
+            document.getElementById('sesKayitBtn').classList.remove('bg-red-600', 'hover:bg-red-700');
+            document.getElementById('sesKayitBtn').classList.add('bg-orange-600', 'hover:bg-orange-700');
+            document.getElementById('mesajOnizleme').classList.add('hidden');
+            document.getElementById('gonderBtn').disabled = true;
+        }
+
+        function gonderSesliMesaj() {
+            const mesajTuru = document.getElementById('mesajTuru').value;
+            
+            if (!recordedAudioBlob) {
+                alert('Lütfen önce sesli mesaj kaydedin.');
+                return;
+            }
+            
+            // Mesajı gönder (simülasyon)
+            addLog('Refakatçi - Sesli Mesaj', 'Hemşireye ' + mesajTuru + ' mesajı gönderildi (' + formatTime(recordingSeconds) + ')', 'border-orange-500');
+            
+            alert('Sesli mesajınız hemşire istasyonuna gönderildi!');
+            
+            closeModal('sesliMesajModal');
+            resetSesKayit();
+        }
+
+        // AI ASİSTAN FONKSİYONLARI
+        let aiConversationState = null;
+        let aiPendingData = {};
+        let aiRecognition = null;
+        let aiSpeechSynthesis = window.speechSynthesis;
+        let aiIsListening = false;
+        let aiMicrophoneStream = null; // Mikrofon akışını sakla
+
+        function toggleAISpeech() {
+            if (aiIsListening) {
+                stopAISpeech();
+            } else {
+                startAISpeech();
+            }
+        }
+
+        function startAISpeech() {
+            // Web Speech API kontrolü
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('Üzgünüm, tarayıcınız sesli komut özelliğini desteklemiyor. Lütfen Chrome veya Edge kullanın.');
+                return;
+            }
+
+            // Eğer daha önce mikrofon izni alınmışsa direkt başlat
+            if (aiMicrophoneStream) {
+                startRecognition();
+                return;
+            }
+
+            // İlk kez mikrofon izni al
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    aiMicrophoneStream = stream; // Akışı sakla
+                    startRecognition();
+                })
+                .catch(err => {
+                    alert('Mikrofon erişimi reddedildi. Lütfen tarayıcı ayarlarından mikrofon iznini açın.');
+                    console.error('Mikrofon hatası:', err);
+                });
+        }
+
+        function startRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            aiRecognition = new SpeechRecognition();
+            aiRecognition.lang = 'tr-TR';
+            aiRecognition.continuous = true; // Sürekli dinleme modu
+            aiRecognition.interimResults = true; // Ara sonuçları göster
+            aiRecognition.maxAlternatives = 1;
+            
+            let finalTranscript = '';
+            let silenceTimer = null;
+
+            aiRecognition.onstart = function() {
+                aiIsListening = true;
+                finalTranscript = '';
+                document.getElementById('aiMicIcon').className = 'fa-solid fa-microphone-lines text-6xl text-red-600 mb-3 animate-pulse';
+                document.getElementById('aiStatusText').textContent = 'Dinliyorum... Konuşabilirsiniz';
+                document.getElementById('aiMicBtn').innerHTML = '<i class="fa-solid fa-stop text-3xl"></i>';
+                document.getElementById('aiMicBtn').className = 'bg-red-600 hover:bg-red-700 text-white px-12 py-6 rounded-full font-bold text-xl transition-all shadow-lg';
+            };
+
+            aiRecognition.onresult = function(event) {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Kullanıcı konuşmayı durdurduğunda 3 saniye bekle
+                if (silenceTimer) {
+                    clearTimeout(silenceTimer);
+                }
+                
+                if (finalTranscript.trim()) {
+                    silenceTimer = setTimeout(() => {
+                        // 3 saniye sessizlik sonrası işlemi tamamla
+                        aiRecognition.stop();
+                        const message = finalTranscript.trim();
+                        if (message) {
+                            addAIMessage(message, 'user');
+                            setTimeout(() => {
+                                processAIMessage(message);
+                            }, 500);
+                        }
+                    }, 3000); // 3 saniye bekleme
+                }
+            };
+
+            aiRecognition.onerror = function(event) {
+                console.error('Ses tanıma hatası:', event.error);
+                if (event.error === 'no-speech') {
+                    speakAI('Sizi duyamadım. Lütfen tekrar deneyin.');
+                } else if (event.error === 'not-allowed') {
+                    alert('Mikrofon erişimi reddedildi. Lütfen tarayıcı ayarlarından mikrofon iznini açın.');
+                    aiMicrophoneStream = null; // İzni sıfırla
+                }
+                stopAISpeech();
+            };
+
+            aiRecognition.onend = function() {
+                if (aiIsListening) {
+                    stopAISpeech();
+                }
+            };
+
+            aiRecognition.start();
+        }
+
+        function stopAISpeech() {
+            if (aiRecognition) {
+                aiRecognition.stop();
+            }
+            aiIsListening = false;
+            document.getElementById('aiMicIcon').className = 'fa-solid fa-microphone text-6xl text-purple-600 mb-3';
+            document.getElementById('aiStatusText').textContent = 'Konuşmak için mikrofon butonuna basın';
+            document.getElementById('aiMicBtn').innerHTML = '<i class="fa-solid fa-microphone text-3xl"></i>';
+            document.getElementById('aiMicBtn').className = 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-12 py-6 rounded-full font-bold text-xl transition-all shadow-lg';
+        }
+
+        function speakAI(text) {
+            // Önceki konuşmayı durdur
+            aiSpeechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'tr-TR';
+            utterance.rate = 0.9; // Biraz daha yavaş, daha anlaşılır
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            // Türkçe ses seç - daha iyi ses kalitesi için
+            const voices = aiSpeechSynthesis.getVoices();
+            const turkishVoice = voices.find(voice => 
+                voice.lang === 'tr-TR' || voice.lang.startsWith('tr')
+            );
+            if (turkishVoice) {
+                utterance.voice = turkishVoice;
+            }
+            
+            utterance.onstart = function() {
+                document.getElementById('aiMicIcon').className = 'fa-solid fa-volume-high text-6xl text-green-600 mb-3 animate-pulse';
+                document.getElementById('aiStatusText').textContent = 'Konuşuyorum...';
+            };
+            
+            utterance.onend = function() {
+                document.getElementById('aiMicIcon').className = 'fa-solid fa-microphone text-6xl text-purple-600 mb-3';
+                document.getElementById('aiStatusText').textContent = 'Konuşmak için mikrofon butonuna basın';
+            };
+            
+            aiSpeechSynthesis.speak(utterance);
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiUserInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Kullanıcı mesajını ekle
+            addAIMessage(message, 'user');
+            input.value = '';
+            
+            // AI yanıtını işle
+            setTimeout(() => {
+                processAIMessage(message);
+            }, 500);
+        }
+
+        function addAIMessage(message, sender) {
+            const chatBox = document.getElementById('aiChatBox');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex gap-3';
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = '<div class="flex-1"></div><div class="bg-blue-500 text-white rounded-lg p-3 shadow-sm max-w-[70%]"><p class="text-lg">' + message + '</p></div><div class="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-user"></i></div>';
+            } else {
+                messageDiv.innerHTML = '<div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-robot"></i></div><div class="bg-white rounded-lg p-3 shadow-sm flex-1"><p class="text-gray-800 text-lg">' + message + '</p></div>';
+            }
+            
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function processAIMessage(message) {
+            const lowerMsg = message.toLowerCase();
+            let response = '';
+            
+            // Eğer bekleyen bir soru varsa
+            if (aiConversationState) {
+                handleAIFollowUp(message);
+                return;
+            }
+            
+            // Tuvalet tespiti - ÖNCELİKLİ (yedi kelimesi karışmasın diye)
+            if (lowerMsg.includes('tuvalet') || lowerMsg.includes('tuvalete') || lowerMsg.includes('abdest') || 
+                lowerMsg.includes('işedi') || lowerMsg.includes('işemiş') || lowerMsg.includes('çiş') ||
+                lowerMsg.includes('wc') || lowerMsg.includes('idrar')) {
+                
+                const miktar = extractWaterAmount(message);
+                
+                if (lowerMsg.includes('büyük') || lowerMsg.includes('kaka') || lowerMsg.includes('dışkı')) {
+                    addRefakatciLog('fa-solid fa-restroom', 'Tuvalet: Büyük Abdest', '');
+                    response = 'Anladım! Büyük abdest kaydedildi. Başka bir şey var mı?';
+                } else if (miktar > 0) {
+                    totalCikis += miktar;
+                    addRefakatciLog('fa-solid fa-restroom', 'Tuvalet: Küçük Abdest', miktar + 'ml');
+                    updateSivilDenge();
+                    response = 'Anladım! ' + miktar + ' mililitre idrar çıkışı kaydedildi. Başka bir şey var mı?';
+                } else {
+                    aiConversationState = 'tuvalet';
+                    response = 'Anladım, hasta tuvalete gitmiş. Küçük abdest mi büyük abdest mi? Küçük abdest ise ne kadar idrar çıkışı oldu?';
+                }
+            }
+            // Alarm kurma tespiti
+            else if (lowerMsg.includes('alarm') || lowerMsg.includes('hatırlatıcı') || lowerMsg.includes('hatırlat') ||
+                     (lowerMsg.includes('ilaç') && (lowerMsg.includes('kur') || lowerMsg.includes('ayarla') || lowerMsg.includes('ekle')))) {
+                aiConversationState = 'alarm';
+                aiPendingData = {};
+                response = 'Anladım, alarm kurmak istiyorsunuz. Hangi ilaç veya işlem için?';
+            }
+            // Su içme tespiti
+            else if ((lowerMsg.includes('su') || lowerMsg.includes('sıvı')) && 
+                (lowerMsg.includes('içti') || lowerMsg.includes('içdi') || lowerMsg.includes('içiyor') || 
+                 lowerMsg.includes('içmiş') || lowerMsg.includes('içtik') || lowerMsg.includes('verdi') ||
+                 lowerMsg.includes('verdim') || lowerMsg.includes('verdik'))) {
+                const miktar = extractWaterAmount(message);
+                if (miktar > 0) {
+                    totalGiris += miktar;
+                    addRefakatciLog('fa-solid fa-glass-water', 'Su İçti', miktar + 'ml');
+                    updateSivilDenge();
+                    response = 'Anladım! ' + miktar + ' mililitre su içtiği kaydedildi. Başka bir şey var mı?';
+                } else {
+                    aiConversationState = 'su';
+                    response = 'Anladım, hasta su içmiş. Ne kadar içti? Örneğin: Bir bardak, Yarım şişe gibi söyleyebilirsiniz.';
+                }
+            }
+            // Yemek yeme tespiti
+            else if ((lowerMsg.includes('yemek') || lowerMsg.includes('yedi') || lowerMsg.includes('yiyor') || 
+                      lowerMsg.includes('yiyecek') || lowerMsg.includes('yemiş') || lowerMsg.includes('ağzına') ||
+                      lowerMsg.includes('çorba') || lowerMsg.includes('pilav') || lowerMsg.includes('et') ||
+                      lowerMsg.includes('ekmek') || lowerMsg.includes('meyve') || lowerMsg.includes('sebze') ||
+                      lowerMsg.includes('mama') || lowerMsg.includes('yoğurt') || lowerMsg.includes('peynir')) &&
+                     !lowerMsg.includes('yemek yemedi') && !lowerMsg.includes('yemedi')) {
+                
+                // Eğer yemek türü belirtilmişse
+                let yemekTuru = null;
+                if (lowerMsg.includes('çorba')) yemekTuru = 'Çorba';
+                else if (lowerMsg.includes('pilav')) yemekTuru = 'Pilav';
+                else if (lowerMsg.includes('et')) yemekTuru = 'Et';
+                else if (lowerMsg.includes('tavuk')) yemekTuru = 'Tavuk';
+                else if (lowerMsg.includes('balık')) yemekTuru = 'Balık';
+                else if (lowerMsg.includes('makarna')) yemekTuru = 'Makarna';
+                else if (lowerMsg.includes('ekmek')) yemekTuru = 'Ekmek';
+                else if (lowerMsg.includes('meyve')) yemekTuru = 'Meyve';
+                else if (lowerMsg.includes('sebze')) yemekTuru = 'Sebze';
+                else if (lowerMsg.includes('yoğurt')) yemekTuru = 'Yoğurt';
+                else if (lowerMsg.includes('peynir')) yemekTuru = 'Peynir';
+                
+                if (yemekTuru) {
+                    aiConversationState = 'yemek';
+                    aiPendingData = { tur: yemekTuru };
+                    response = 'Tamam, ' + yemekTuru + '. Ne kadar yedi? Örneğin: Tam porsiyon, Yarım tabak gibi söyleyebilirsiniz.';
+                } else {
+                    aiConversationState = 'yemek';
+                    aiPendingData = {};
+                    response = 'Anladım, hasta yemek yemiş. Ne yedi? Örneğin: Çorba, pilav, et gibi söyleyebilirsiniz.';
+                }
+            }
+            // Genel yardım ve selamlaşma
+            else if (lowerMsg.includes('merhaba') || lowerMsg.includes('selam') || lowerMsg.includes('hey')) {
+                response = 'Merhaba! Size nasıl yardımcı olabilirim? Hasta su içti, yemek yedi veya tuvalete gitti gibi söyleyebilirsiniz.';
+            }
+            else if (lowerMsg.includes('teşekkür') || lowerMsg.includes('sağol') || lowerMsg.includes('eyvallah')) {
+                response = 'Rica ederim! Başka bir şey var mı?';
+            }
+            else if (lowerMsg.includes('yok') || lowerMsg.includes('hayır') || lowerMsg.includes('tamam')) {
+                response = 'Anladım. İhtiyacınız olduğunda buradayım!';
+            }
+            else {
+                response = 'Üzgünüm, tam olarak anlayamadım. Su içti, Yemek yedi veya Tuvalete gitti gibi söyleyebilirsiniz.';
+            }
+            
+            addAIMessage(response, 'ai');
+            speakAI(response);
+        }
+
+        function handleAIFollowUp(message) {
+            const lowerMsg = message.toLowerCase();
+            let response = '';
+            
+            if (aiConversationState === 'su') {
+                const miktar = extractWaterAmount(message);
+                if (miktar > 0) {
+                    totalGiris += miktar;
+                    addRefakatciLog('fa-solid fa-glass-water', 'Su İçti', miktar + 'ml');
+                    updateSivilDenge();
+                    response = 'Harika! ' + miktar + ' mililitre su içtiği kaydedildi. Başka bir şey var mı?';
+                    aiConversationState = null;
+                } else {
+                    response = 'Miktarı anlayamadım. Lütfen daha açık söyler misiniz? Örneğin: Bir bardak, Yarım şişe gibi.';
+                }
+            }
+            else if (aiConversationState === 'yemek') {
+                if (!aiPendingData.tur) {
+                    aiPendingData.tur = message;
+                    
+                    // Çorba ise türünü sor
+                    if (message.toLowerCase().includes('çorba') || message.toLowerCase().includes('corba')) {
+                        aiPendingData.isCorba = true;
+                        response = 'Tamam, çorba. Taneli mi, tanesiniz mi, yoksa full sıvı mı?';
+                    } else {
+                        response = 'Tamam, ' + message + '. Ne kadar yedi? Örneğin: Tam porsiyon, Yarım porsiyon, Büyük porsiyon, 2 porsiyon gibi söyleyebilirsiniz.';
+                    }
+                } else if (aiPendingData.isCorba && !aiPendingData.corbaTuru) {
+                    // Çorba türünü kaydet
+                    aiPendingData.corbaTuru = message;
+                    response = 'Anladım. Ne kadar yedi? Örneğin: Tam porsiyon, Yarım porsiyon gibi söyleyebilirsiniz.';
+                } else {
+                    // Porsiyon bilgisini al
+                    const porsiyon = extractPorsiyonText(message);
+                    
+                    if (porsiyon) {
+                        let detay = 'Yemek: ' + aiPendingData.tur;
+                        if (aiPendingData.corbaTuru) {
+                            detay += ' (' + aiPendingData.corbaTuru + ')';
+                        }
+                        detay += ' - ' + porsiyon;
+                        
+                        addRefakatciLog('fa-solid fa-utensils', detay, '');
+                        response = 'Mükemmel! ' + aiPendingData.tur + ', ' + porsiyon + ' kaydedildi. Başka bir şey var mı?';
+                        aiConversationState = null;
+                        aiPendingData = {};
+                    } else {
+                        response = 'Porsiyon miktarını anlayamadım. Lütfen şöyle söyleyin: Tam porsiyon, Yarım porsiyon, Çeyrek porsiyon, Büyük porsiyon veya 2 porsiyon.';
+                    }
+                }
+            }
+            else if (aiConversationState === 'tuvalet') {
+                // Büyük veya küçük abdest kontrolü
+                if (lowerMsg.includes('büyük') || lowerMsg.includes('kaka') || lowerMsg.includes('dışkı')) {
+                    addRefakatciLog('fa-solid fa-restroom', 'Tuvalet: Büyük Abdest', '');
+                    response = 'Anladım! Büyük abdest kaydedildi. Başka bir şey var mı?';
+                    aiConversationState = null;
+                } else {
+                    // Küçük abdest için miktar iste
+                    const miktar = extractWaterAmount(message);
+                    if (miktar > 0) {
+                        totalCikis += miktar;
+                        addRefakatciLog('fa-solid fa-restroom', 'Tuvalet: Küçük Abdest', miktar + 'ml');
+                        updateSivilDenge();
+                        response = 'Anladım! ' + miktar + ' mililitre idrar çıkışı kaydedildi. Başka bir şey var mı?';
+                        aiConversationState = null;
+                    } else {
+                        response = 'Küçük abdest mi büyük abdest mi? Küçük abdest ise ne kadar idrar çıkışı oldu?';
+                    }
+                }
+            }
+            else if (aiConversationState === 'alarm') {
+                if (!aiPendingData.ilac) {
+                    aiPendingData.ilac = message;
+                    response = 'Tamam, ' + message + ' için alarm. Ne zaman çalsın? Örneğin: Saat 21:42 de, 30 dakika sonra, 1 saat sonra gibi söyleyebilirsiniz.';
+                } else {
+                    // Önce belirli saat formatını kontrol et
+                    const belirliSaat = extractBelirliSaat(message);
+                    if (belirliSaat) {
+                        const alarm = {
+                            id: Date.now(),
+                            ilac: aiPendingData.ilac,
+                            saat: belirliSaat,
+                            tekrar: 'once',
+                            aktif: true,
+                            tip: 'refakatci',
+                            alarmTuru: 'saat'
+                        };
+                        
+                        alarms.push(alarm);
+                        updateAlarmBadge();
+                        updateAlarmList();
+                        
+                        if (!alarmCheckInterval) {
+                            alarmCheckInterval = setInterval(checkAlarms, 30000);
+                        }
+                        
+                        addRefakatciLog('fa-solid fa-bell', 'Hatırlatıcı eklendi: ' + aiPendingData.ilac, 'Saat: ' + belirliSaat);
+                        
+                        response = 'Mükemmel! ' + aiPendingData.ilac + ' için saat ' + belirliSaat + ' de alarm kuruldu. Başka bir şey var mı?';
+                        aiConversationState = null;
+                        aiPendingData = {};
+                    } else {
+                        // Dakika sonra formatını kontrol et
+                        const dakika = extractDakika(message);
+                        if (dakika > 0) {
+                            // Alarm kur
+                            const now = new Date();
+                            now.setMinutes(now.getMinutes() + dakika);
+                            const alarmSaat = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                            
+                            const alarm = {
+                                id: Date.now(),
+                                ilac: aiPendingData.ilac,
+                                saat: alarmSaat,
+                                tekrar: 'once',
+                                aktif: true,
+                                tip: 'refakatci',
+                                alarmTuru: 'dakika'
+                            };
+                            
+                            alarms.push(alarm);
+                            updateAlarmBadge();
+                            updateAlarmList();
+                            
+                            if (!alarmCheckInterval) {
+                                alarmCheckInterval = setInterval(checkAlarms, 30000);
+                            }
+                            
+                            addRefakatciLog('fa-solid fa-bell', 'Hatırlatıcı eklendi: ' + aiPendingData.ilac, dakika + ' dakika sonra (Saat: ' + alarmSaat + ')');
+                            
+                            response = 'Mükemmel! ' + aiPendingData.ilac + ' için ' + dakika + ' dakika sonra, saat ' + alarmSaat + ' de alarm kuruldu. Başka bir şey var mı?';
+                            aiConversationState = null;
+                            aiPendingData = {};
+                        } else {
+                            response = 'Zamanı anlayamadım. Lütfen şöyle söyleyin: Saat 21:42 de, 30 dakika sonra, 1 saat sonra gibi.';
+                        }
+                    }
+                }
+            }
+            
+            addAIMessage(response, 'ai');
+            speakAI(response);
+        }
+
+        function extractWaterAmount(text) {
+            const lowerText = text.toLowerCase();
+            
+            // Direkt ml/mililitre
+            const mlMatch = lowerText.match(/(\d+)\s*(ml|mililitre|milim)/);
+            if (mlMatch) return parseInt(mlMatch[1]);
+            
+            // Direkt sayı (100, 200, 250 gibi)
+            const numberMatch = lowerText.match(/(\d{2,4})/);
+            if (numberMatch) {
+                const num = parseInt(numberMatch[1]);
+                if (num >= 50 && num <= 2000) return num;
+            }
+            
+            // Bardak hesaplamaları - daha detaylı
+            if (lowerText.includes('bardak')) {
+                // Yarım bardaktan fazla/az hesaplamaları
+                if (lowerText.includes('yarım') || lowerText.includes('yarı')) {
+                    if (lowerText.includes('fazla') || lowerText.includes('çok')) {
+                        return 250; // Yarım bardaktan fazla
+                    }
+                    if (lowerText.includes('biraz daha az') || lowerText.includes('biraz eksik') || lowerText.includes('az')) {
+                        return 150; // Yarım bardaktan az
+                    }
+                    return 200; // Tam yarım bardak
+                }
+                // Çeyrek bardak
+                if (lowerText.includes('çeyrek') || lowerText.includes('1/4')) {
+                    return 100;
+                }
+                // Üç çeyrek bardak
+                if (lowerText.includes('üç çeyrek') || lowerText.includes('3/4')) {
+                    return 300;
+                }
+                // Tam bardak
+                if (lowerText.includes('bir bardak') || lowerText.includes('1 bardak') || lowerText.includes('tam bardak')) {
+                    return 400;
+                }
+                if (lowerText.includes('iki bardak') || lowerText.includes('2 bardak')) {
+                    return 800;
+                }
+                // Sadece "bardak" denirse
+                return 400;
+            }
+            
+            // Şişe hesaplamaları (standart 500ml)
+            if (lowerText.includes('şişe')) {
+                if (lowerText.includes('yarım') || lowerText.includes('yarı')) {
+                    if (lowerText.includes('fazla') || lowerText.includes('çok')) {
+                        return 300; // Yarım şişeden fazla
+                    }
+                    if (lowerText.includes('biraz daha az') || lowerText.includes('biraz eksik') || lowerText.includes('az')) {
+                        return 200; // Yarım şişeden az
+                    }
+                    return 250; // Tam yarım şişe
+                }
+                if (lowerText.includes('çeyrek') || lowerText.includes('1/4')) {
+                    return 125;
+                }
+                if (lowerText.includes('bir şişe') || lowerText.includes('1 şişe') || lowerText.includes('tam şişe')) {
+                    return 500;
+                }
+                // Sadece "şişe" denirse
+                return 500;
+            }
+            
+            // Fincan (küçük bardak)
+            if (lowerText.includes('fincan')) {
+                if (lowerText.includes('yarım')) return 100;
+                return 200;
+            }
+            
+            // Tabak (yemek için)
+            if (lowerText.includes('tabak')) {
+                if (lowerText.includes('yarım')) return 150;
+                return 300;
+            }
+            
+            // Kaşık (çorba kaşığı)
+            if (lowerText.includes('kaşık')) {
+                if (lowerText.includes('çay')) return 5;
+                return 15; // Yemek kaşığı
+            }
+            
+            return 0;
+        }
+
+        function extractFoodAmount(text) {
+            const lowerText = text.toLowerCase();
+            
+            // Direkt gram
+            const gramMatch = lowerText.match(/(\d+)\s*(gram|gr|g\b)/);
+            if (gramMatch) return parseInt(gramMatch[1]);
+            
+            // Direkt sayı (100, 200, 250 gibi)
+            const numberMatch = lowerText.match(/(\d{2,4})/);
+            if (numberMatch) {
+                const num = parseInt(numberMatch[1]);
+                if (num >= 50 && num <= 1000) return num;
+            }
+            
+            // Porsiyon hesaplamaları - daha detaylı
+            if (lowerText.includes('tam') || lowerText.includes('full') || lowerText.includes('bütün') || lowerText.includes('hepsi')) {
+                return 300;
+            }
+            if (lowerText.includes('yarım') || lowerText.includes('yarı')) {
+                if (lowerText.includes('fazla') || lowerText.includes('çok')) {
+                    return 200; // Yarım porsiyondan fazla
+                }
+                if (lowerText.includes('az') || lowerText.includes('eksik')) {
+                    return 100; // Yarım porsiyondan az
+                }
+                return 150; // Tam yarım porsiyon
+            }
+            if (lowerText.includes('çeyrek') || lowerText.includes('1/4')) {
+                return 75;
+            }
+            if (lowerText.includes('üç çeyrek') || lowerText.includes('3/4')) {
+                return 225;
+            }
+            
+            // Tabak hesaplamaları
+            if (lowerText.includes('tabak')) {
+                if (lowerText.includes('yarım')) return 150;
+                if (lowerText.includes('tam')) return 300;
+                return 300; // Varsayılan tam tabak
+            }
+            
+            // Kaşık hesaplamaları
+            if (lowerText.includes('kaşık')) {
+                const kaşıkMatch = lowerText.match(/(\d+)\s*kaşık/);
+                if (kaşıkMatch) {
+                    const adet = parseInt(kaşıkMatch[1]);
+                    return adet * 15; // Her kaşık 15g
+                }
+                return 15; // Bir kaşık
+            }
+            
+            // Dilim (ekmek, peynir vb)
+            if (lowerText.includes('dilim')) {
+                const dilimMatch = lowerText.match(/(\d+)\s*dilim/);
+                if (dilimMatch) {
+                    const adet = parseInt(dilimMatch[1]);
+                    return adet * 30; // Her dilim 30g
+                }
+                return 30; // Bir dilim
+            }
+            
+            return 0;
+        }
+
+        function extractPortion(text) {
+            const lowerText = text.toLowerCase();
+            
+            if (lowerText.includes('tam') || lowerText.includes('full')) return 'Tam Porsiyon';
+            if (lowerText.includes('yarım') || lowerText.includes('yarı')) return 'Yarım Porsiyon';
+            if (lowerText.includes('çeyrek')) return 'Çeyrek Porsiyon';
+            
+            return 'Tam Porsiyon';
+        }
+
+        function extractPorsiyonText(text) {
+            const lowerText = text.toLowerCase();
+            
+            // Sayı + porsiyon
+            if (lowerText.includes('3 porsiyon') || lowerText.includes('üç porsiyon')) return '3 Porsiyon';
+            if (lowerText.includes('2 porsiyon') || lowerText.includes('iki porsiyon')) return '2 Porsiyon';
+            
+            // Büyüklük + porsiyon
+            if (lowerText.includes('büyük porsiyon')) return 'Büyük Porsiyon';
+            if (lowerText.includes('küçük porsiyon')) return 'Çeyrek Porsiyon';
+            
+            // Oran + porsiyon
+            if (lowerText.includes('çeyrek') || lowerText.includes('1/4')) return 'Çeyrek Porsiyon';
+            if (lowerText.includes('yarım') || lowerText.includes('yarı') || lowerText.includes('1/2')) return 'Yarım Porsiyon';
+            if (lowerText.includes('tam') || lowerText.includes('full') || lowerText.includes('bir porsiyon') || lowerText.includes('1 porsiyon')) return 'Tam Porsiyon';
+            
+            return null;
+        }
+
+        function extractDakika(text) {
+            const lowerText = text.toLowerCase();
+            
+            // Direkt dakika
+            const dakikaMatch = lowerText.match(/(\d+)\s*(dakika|dk)/);
+            if (dakikaMatch) return parseInt(dakikaMatch[1]);
+            
+            // Saat cinsinden
+            const saatMatch = lowerText.match(/(\d+)\s*(saat|sa)/);
+            if (saatMatch) return parseInt(saatMatch[1]) * 60;
+            
+            // Yarım saat
+            if (lowerText.includes('yarım saat')) return 30;
+            
+            // Çeyrek saat
+            if (lowerText.includes('çeyrek saat')) return 15;
+            
+            // Sadece sayı varsa dakika kabul et
+            const numberMatch = lowerText.match(/(\d+)/);
+            if (numberMatch) {
+                const num = parseInt(numberMatch[1]);
+                if (num >= 1 && num <= 1440) return num; // Max 24 saat
+            }
+            
+            return 0;
+        }
+
+        function extractBelirliSaat(text) {
+            const lowerText = text.toLowerCase();
+            
+            // Saat formatları: 21:42, 21.42, 2142, saat 21 42
+            // Format 1: 21:42 veya 21.42
+            const saatFormat1 = lowerText.match(/(\d{1,2})[:.](\d{2})/);
+            if (saatFormat1) {
+                const saat = parseInt(saatFormat1[1]);
+                const dakika = parseInt(saatFormat1[2]);
+                if (saat >= 0 && saat <= 23 && dakika >= 0 && dakika <= 59) {
+                    return saat.toString().padStart(2, '0') + ':' + dakika.toString().padStart(2, '0');
+                }
+            }
+            
+            // Format 2: 2142 (4 haneli)
+            const saatFormat2 = lowerText.match(/\b(\d{4})\b/);
+            if (saatFormat2) {
+                const saatStr = saatFormat2[1];
+                const saat = parseInt(saatStr.substring(0, 2));
+                const dakika = parseInt(saatStr.substring(2, 4));
+                if (saat >= 0 && saat <= 23 && dakika >= 0 && dakika <= 59) {
+                    return saat.toString().padStart(2, '0') + ':' + dakika.toString().padStart(2, '0');
+                }
+            }
+            
+            // Format 3: "saat 21 42" veya "saat 21 de 42"
+            const saatFormat3 = lowerText.match(/saat\s+(\d{1,2})\s+(?:de\s+)?(\d{1,2})/);
+            if (saatFormat3) {
+                const saat = parseInt(saatFormat3[1]);
+                const dakika = parseInt(saatFormat3[2]);
+                if (saat >= 0 && saat <= 23 && dakika >= 0 && dakika <= 59) {
+                    return saat.toString().padStart(2, '0') + ':' + dakika.toString().padStart(2, '0');
+                }
+            }
+            
+            // Format 4: "saat 21 de" (sadece saat, dakika 00)
+            const saatFormat4 = lowerText.match(/saat\s+(\d{1,2})\s*(?:de|da)?(?:\s|$)/);
+            if (saatFormat4) {
+                const saat = parseInt(saatFormat4[1]);
+                if (saat >= 0 && saat <= 23) {
+                    return saat.toString().padStart(2, '0') + ':00';
+                }
+            }
+            
+            return null;
+        }
+
+        // ALARM FONKSİYONLARI
+        let kronometreInterval = null;
+        let kronometreSaniye = 0;
+
+        function changeAlarmType() {
+            const tur = document.getElementById('alarmTuru').value;
+            
+            document.getElementById('saatAlarmDiv').classList.add('hidden');
+            document.getElementById('dakikaAlarmDiv').classList.add('hidden');
+            document.getElementById('kronometreDiv').classList.add('hidden');
+            
+            if (tur === 'saat') {
+                document.getElementById('saatAlarmDiv').classList.remove('hidden');
+            } else if (tur === 'dakika') {
+                document.getElementById('dakikaAlarmDiv').classList.remove('hidden');
+            } else if (tur === 'kronometre') {
+                document.getElementById('kronometreDiv').classList.remove('hidden');
+            }
+        }
+
+        function startKronometre() {
+            document.getElementById('kronometreBaslatBtn').classList.add('hidden');
+            document.getElementById('kronometreDurdurBtn').classList.remove('hidden');
+            
+            kronometreInterval = setInterval(() => {
+                kronometreSaniye++;
+                updateKronometreDisplay();
+            }, 1000);
+        }
+
+        function stopKronometre() {
+            clearInterval(kronometreInterval);
+            document.getElementById('kronometreBaslatBtn').classList.remove('hidden');
+            document.getElementById('kronometreDurdurBtn').classList.add('hidden');
+        }
+
+        function resetKronometre() {
+            clearInterval(kronometreInterval);
+            kronometreSaniye = 0;
+            updateKronometreDisplay();
+            document.getElementById('kronometreBaslatBtn').classList.remove('hidden');
+            document.getElementById('kronometreDurdurBtn').classList.add('hidden');
+        }
+
+        function updateKronometreDisplay() {
+            const saat = Math.floor(kronometreSaniye / 3600);
+            const dakika = Math.floor((kronometreSaniye % 3600) / 60);
+            const saniye = kronometreSaniye % 60;
+            
+            const display = saat.toString().padStart(2, '0') + ':' + 
+                          dakika.toString().padStart(2, '0') + ':' + 
+                          saniye.toString().padStart(2, '0');
+            
+            document.getElementById('kronometreSure').textContent = display;
+        }
+
+        function addAlarm() {
+            const ilac = document.getElementById('alarmIlac').value;
+            const tur = document.getElementById('alarmTuru').value;
+            
+            if (!ilac) {
+                alert('Lütfen ilaç/işlem adını girin.');
+                return;
+            }
+            
+            let alarmSaat = '';
+            let tekrar = 'once';
+            
+            if (tur === 'saat') {
+                alarmSaat = document.getElementById('alarmSaat').value;
+                tekrar = document.getElementById('alarmTekrar').value;
+                
+                if (!alarmSaat) {
+                    alert('Lütfen saat bilgisini girin.');
+                    return;
+                }
+            } else if (tur === 'dakika') {
+                const dakika = document.getElementById('alarmDakika').value;
+                
+                if (!dakika || dakika <= 0) {
+                    alert('Lütfen geçerli bir dakika değeri girin.');
+                    return;
+                }
+                
+                // Şimdiki zamana dakika ekle
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + parseInt(dakika));
+                alarmSaat = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                tekrar = 'once';
+            } else if (tur === 'kronometre') {
+                // Kronometre için alarm ekleme
+                alert('Kronometre çalışıyor. İstediğiniz süre dolduğunda durdurabilirsiniz.');
+                return;
+            }
+            
+            const alarm = {
+                id: Date.now(),
+                ilac: ilac,
+                saat: alarmSaat,
+                tekrar: tekrar,
+                aktif: true,
+                tip: 'refakatci',
+                alarmTuru: tur
+            };
+            
+            alarms.push(alarm);
+            updateAlarmList();
+            updateAlarmBadge();
+            
+            // Alarm kontrolünü başlat
+            if (!alarmCheckInterval) {
+                alarmCheckInterval = setInterval(checkAlarms, 30000); // Her 30 saniyede kontrol
+            }
+            
+            // Refakatçi log'una ekle
+            const turText = tur === 'dakika' ? ' (' + document.getElementById('alarmDakika').value + ' dk sonra)' : '';
+            addRefakatciLog('fa-solid fa-bell', 'Hatırlatıcı eklendi: ' + ilac + turText, alarmSaat + ' (' + getTekrarText(tekrar) + ')');
+            
+            document.getElementById('alarmIlac').value = '';
+            document.getElementById('alarmSaat').value = '';
+            document.getElementById('alarmDakika').value = '';
+            
+            alert('Hatırlatıcı başarıyla eklendi!');
+        }
+        
+        function updateAlarmList() {
+            const list = document.getElementById('alarmList');
+            if (alarms.length === 0) {
+                list.innerHTML = '<div class="text-gray-400 text-center py-4">Henüz hatırlatıcı eklenmedi</div>';
+                return;
+            }
+            
+            let html = '';
+            alarms.forEach(function(alarm) {
+                const bgColor = alarm.tip === 'personel' ? 'bg-purple-50' : 'bg-cyan-50';
+                const iconColor = alarm.tip === 'personel' ? 'text-purple-600' : 'text-cyan-600';
+                const tipText = alarm.tip === 'personel' ? '(Personel)' : '(Refakatçi)';
+                
+                html += '<div class="' + bgColor + ' p-3 rounded-lg flex items-center justify-between">';
+                html += '<div class="flex items-center gap-3">';
+                html += '<i class="fa-solid fa-pills ' + iconColor + ' text-xl"></i>';
+                html += '<div>';
+                html += '<div class="font-bold text-gray-800">' + alarm.ilac + ' ' + tipText + '</div>';
+                html += '<div class="text-sm text-gray-500">Saat: ' + alarm.saat + ' - ' + getTekrarText(alarm.tekrar) + '</div>';
+                if (alarm.personel) {
+                    html += '<div class="text-xs text-gray-400">Ekleyen: ' + alarm.personel + '</div>';
+                }
+                html += '</div>';
+                html += '</div>';
+                html += '<button onclick="deleteAlarm(' + alarm.id + ')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg">';
+                html += '<i class="fa-solid fa-trash"></i>';
+                html += '</button>';
+                html += '</div>';
+            });
+            list.innerHTML = html;
+        }
+        
+        function getTekrarText(tekrar) {
+            const texts = {
+                'once': 'Bir Kez',
+                'daily': 'Her Gün',
+                '4hours': '4 Saatte Bir',
+                '6hours': '6 Saatte Bir',
+                '8hours': '8 Saatte Bir'
+            };
+            return texts[tekrar] || tekrar;
+        }
+        
+        function deleteAlarm(id) {
+            if (confirm('Bu hatırlatıcıyı silmek istediğinize emin misiniz?')) {
+                // Alarm listesinden sil
+                alarms = alarms.filter(function(a) { return a.id !== id; });
+                
+                // Listeyi güncelle
+                updateAlarmList();
+                updateAlarmBadge();
+                
+                // Eğer alarm kalmadıysa interval'i durdur
+                if (alarms.length === 0 && alarmCheckInterval) {
+                    clearInterval(alarmCheckInterval);
+                    alarmCheckInterval = null;
+                }
+                
+                alert('Hatırlatıcı başarıyla silindi!');
+            }
+        }
+        
+        function updateAlarmBadge() {
+            const badge = document.getElementById('alarmBadge');
+            if (alarms.length > 0) {
+                badge.textContent = alarms.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+        
+        function checkAlarms() {
+            const now = new Date();
+            const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            alarms.forEach(alarm => {
+                if (alarm.aktif && alarm.saat === currentTime) {
+                    showAlarmNotification(alarm);
+                    
+                    // Bir kez ise sil
+                    if (alarm.tekrar === 'once') {
+                        alarm.aktif = false;
+                    }
+                }
+            });
+        }
+        
+        function showAlarmNotification(alarm) {
+            const notification = document.getElementById('alarmNotification');
+            const message = document.getElementById('alarmMessage');
+            
+            message.textContent = alarm.ilac + ' - ' + alarm.saat;
+            notification.classList.remove('hidden');
+            
+            // Ses çal (tarayıcı izni gerekebilir)
+            playAlarmSound();
+            
+            // Log ekle
+            addLog('Sistem - Hatırlatıcı', 'İlaç Zamanı: ' + alarm.ilac, 'border-red-600');
+        }
+        
+        function dismissAlarm() {
+            document.getElementById('alarmNotification').classList.add('hidden');
+        }
+        
+        function playAlarmSound() {
+            // Devamlı çalan alarm sesi
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 3 saniye boyunca tekrarlayan beep sesi
+                function playBeep(startTime) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(currentVolume / 100, startTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+                    
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + 0.5);
+                }
+                
+                // 10 saniye boyunca her 1 saniyede bir beep çal
+                for (let i = 0; i < 10; i++) {
+                    playBeep(audioContext.currentTime + i);
+                }
+            } catch (e) {
+                console.log('Ses çalınamadı:', e);
+            }
+        }
+        
+        // AYARLAR FONKSİYONLARI
+        function updateBrightness(value) {
+            currentBrightness = value;
+            document.getElementById('brightnessValue').textContent = value + '%';
+            document.body.style.filter = 'brightness(' + value + '%)';
+        }
+        
+        function setBrightness(value) {
+            document.getElementById('brightnessSlider').value = value;
+            updateBrightness(value);
+        }
+        
+        function updateVolume(value) {
+            currentVolume = value;
+            document.getElementById('volumeValue').textContent = value + '%';
+        }
+        
+        function toggleNightMode() {
+            const isNightMode = document.getElementById('nightMode').checked;
+            if (isNightMode) {
+                setBrightness(30);
+                document.body.style.backgroundColor = '#1a1a1a';
+            } else {
+                setBrightness(100);
+                document.body.style.backgroundColor = '#e8eef3';
+            }
+        }
+        
+        // Tuvalet türü değiştiğinde idrar miktarı alanını göster/gizle ve alarm kontrolünü başlat
+        document.addEventListener('DOMContentLoaded', function() {
+            const tuvaletTur = document.getElementById('tuvaletTur');
+            if (tuvaletTur) {
+                tuvaletTur.addEventListener('change', function() {
+                    const idrarDiv = document.getElementById('idrarMiktarDiv');
+                    if (this.value === 'Küçük Abdest') {
+                        idrarDiv.style.display = 'block';
+                    } else {
+                        idrarDiv.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Alarm kontrolünü başlat
+            alarmCheckInterval = setInterval(checkAlarms, 30000);
+            
+            // Vital bulguları otomatik güncelle (Demo için)
+            startVitalSignsSimulation();
+            
+            // PWA Service Worker Kaydı
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker kaydedildi:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker kaydı başarısız:', error);
+                    });
+            }
+            
+            // PWA Yükleme Bildirimi
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                showInstallPromotion();
+            });
+            
+            // iOS için özel bildirim
+            const isIos = () => {
+                const userAgent = window.navigator.userAgent.toLowerCase();
+                return /iphone|ipad|ipod/.test(userAgent);
+            };
+            
+            const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+            
+            if (isIos() && !isInStandaloneMode()) {
+                // iOS kullanıcılarına ana ekrana ekleme talimatı göster
+                setTimeout(() => {
+                    if (!localStorage.getItem('iosInstallPromptShown')) {
+                        showIOSInstallInstructions();
+                        localStorage.setItem('iosInstallPromptShown', 'true');
+                    }
+                }, 3000);
+            }
+        });
+        
+        function showInstallPromotion() {
+            // Android için yükleme bildirimi
+            const installBanner = document.createElement('div');
+            installBanner.id = 'installBanner';
+            installBanner.className = 'fixed top-20 left-4 right-4 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white p-4 rounded-lg shadow-2xl z-50 animate-slideIn';
+            installBanner.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-download text-2xl"></i>
+                        <div>
+                            <div class="font-bold">YAHİS Uygulamasını Yükle</div>
+                            <div class="text-sm opacity-90">Ana ekrana ekleyerek hızlı erişim sağlayın</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="installPWA()" class="bg-white text-cyan-600 px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition-all">
+                            Yükle
+                        </button>
+                        <button onclick="closeInstallBanner()" class="text-white hover:bg-white/20 px-3 py-2 rounded-lg transition-all">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(installBanner);
+        }
+        
+        function showIOSInstallInstructions() {
+            const iosInstructions = document.createElement('div');
+            iosInstructions.id = 'iosInstructions';
+            iosInstructions.className = 'fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50';
+            iosInstructions.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Ana Ekrana Ekle</h3>
+                        <button onclick="closeIOSInstructions()" class="text-gray-400 hover:text-gray-600">
+                            <i class="fa-solid fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4 text-gray-700">
+                        <p>YAHİS'i ana ekranınıza eklemek için:</p>
+                        <ol class="list-decimal list-inside space-y-2">
+                            <li>Safari'nin alt kısmındaki <i class="fa-solid fa-square-arrow-up-right text-blue-500"></i> <strong>Paylaş</strong> butonuna dokunun</li>
+                            <li><i class="fa-solid fa-plus-square text-blue-500"></i> <strong>Ana Ekrana Ekle</strong> seçeneğini seçin</li>
+                            <li><strong>Ekle</strong> butonuna dokunun</li>
+                        </ol>
+                        <p class="text-sm text-gray-500 mt-4">Böylece YAHİS'e uygulama gibi hızlıca erişebilirsiniz!</p>
+                    </div>
+                    <button onclick="closeIOSInstructions()" class="w-full mt-4 bg-cyan-600 text-white p-3 rounded-lg font-bold hover:bg-cyan-700 transition-all">
+                        Anladım
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(iosInstructions);
+        }
+        
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Kullanıcı PWA yüklemeyi kabul etti');
+                    }
+                    deferredPrompt = null;
+                    closeInstallBanner();
+                });
+            }
+        }
+        
+        function closeInstallBanner() {
+            const banner = document.getElementById('installBanner');
+            if (banner) {
+                banner.remove();
+            }
+        }
+        
+        function closeIOSInstructions() {
+            const instructions = document.getElementById('iosInstructions');
+            if (instructions) {
+                instructions.remove();
+            }
+        }
+
+        // DEMO: Vital Bulguları Otomatik Güncelleme
+        let vitalSimulationInterval = null;
+        let currentVitals = {
+            ates: 36.8,
+            nabiz: 72,
+            tansiyon: { sistolik: 120, diyastolik: 80 },
+            spo2: 98,
+            solunum: 16
+        };
+
+        function startVitalSignsSimulation() {
+            // Her 5 saniyede bir vital bulguları güncelle
+            vitalSimulationInterval = setInterval(() => {
+                updateSimulatedVitals();
+            }, 5000);
+        }
+
+        function updateSimulatedVitals() {
+            // Ateş: 36.5 - 37.5 arası (0.1 derece değişim)
+            currentVitals.ates += (Math.random() - 0.5) * 0.2;
+            currentVitals.ates = Math.max(36.5, Math.min(37.5, currentVitals.ates));
+            
+            // Nabız: 65 - 85 arası (1-3 atım değişim)
+            currentVitals.nabiz += Math.floor((Math.random() - 0.5) * 6);
+            currentVitals.nabiz = Math.max(65, Math.min(85, currentVitals.nabiz));
+            
+            // Tansiyon: Sistolik 110-130, Diyastolik 70-90
+            currentVitals.tansiyon.sistolik += Math.floor((Math.random() - 0.5) * 6);
+            currentVitals.tansiyon.sistolik = Math.max(110, Math.min(130, currentVitals.tansiyon.sistolik));
+            currentVitals.tansiyon.diyastolik += Math.floor((Math.random() - 0.5) * 4);
+            currentVitals.tansiyon.diyastolik = Math.max(70, Math.min(90, currentVitals.tansiyon.diyastolik));
+            
+            // SpO2: 96 - 100 arası
+            currentVitals.spo2 += Math.floor((Math.random() - 0.5) * 2);
+            currentVitals.spo2 = Math.max(96, Math.min(100, currentVitals.spo2));
+            
+            // Solunum: 14 - 18 arası
+            currentVitals.solunum += Math.floor((Math.random() - 0.5) * 2);
+            currentVitals.solunum = Math.max(14, Math.min(18, currentVitals.solunum));
+            
+            // Ekrandaki değerleri güncelle
+            displayVitalSigns();
+        }
+
+        function displayVitalSigns() {
+            const vitalElements = document.querySelectorAll('.space-y-3.pt-2 .flex.justify-between');
+            
+            if (vitalElements[0]) {
+                vitalElements[0].querySelector('.font-bold').textContent = currentVitals.ates.toFixed(1) + '°C';
+            }
+            if (vitalElements[1]) {
+                vitalElements[1].querySelector('.font-bold').textContent = currentVitals.nabiz + ' atım/dk';
+            }
+            if (vitalElements[2]) {
+                vitalElements[2].querySelector('.font-bold').textContent = currentVitals.tansiyon.sistolik + '/' + currentVitals.tansiyon.diyastolik + ' mmHg';
+            }
+            if (vitalElements[3]) {
+                const spo2Element = vitalElements[3].querySelector('.font-bold');
+                spo2Element.textContent = currentVitals.spo2 + '%';
+                // SpO2 değerine göre renk
+                if (currentVitals.spo2 >= 95) {
+                    spo2Element.className = 'font-bold text-green-600';
+                } else if (currentVitals.spo2 >= 90) {
+                    spo2Element.className = 'font-bold text-orange-600';
+                } else {
+                    spo2Element.className = 'font-bold text-red-600';
+                }
+            }
+            if (vitalElements[4]) {
+                vitalElements[4].querySelector('.font-bold').textContent = currentVitals.solunum + ' /dk';
+            }
+        }
+    </script>
+</body>
+</html>
